@@ -12,12 +12,12 @@
             <!-- Sidebar for IT Asset Management -->
 
             <li class="nav-item">
-                <a class="nav-link collapsed" data-bs-target="#lokasi-nav" data-bs-toggle="collapse" href="#">
+                <a class="nav-link {{ Request::is('master-site') ? '' : 'collapsed' }}" data-bs-target="#lokasi-nav" data-bs-toggle="collapse" href="#">
                     <i class="bi bi-geo-alt"></i><span>Master Lokasi</span><i class="bi bi-chevron-down ms-auto"></i>
                 </a>
-                <ul id="lokasi-nav" class="nav-content collapse" data-bs-parent="#sidebar-nav">
+                <ul id="lokasi-nav" class="nav-content collapse {{ Request::is('master-site', 'master-divisi') ? 'show' : '' }}" data-bs-parent="#sidebar-nav">
                     <li>
-                        <a href="master-site.html">
+                        <a href="{{ route('site.home') }}" class="{{ Request::is('master-site') ? 'active' : '' }}">
                             <i class="bi bi-circle"></i><span>Site</span>
                         </a>
                     </li>
@@ -27,7 +27,8 @@
                         </a>
                     </li>
                 </ul>
-            </li><!-- End Master Lokasi Nav -->
+            </li>
+            <!-- End Master Lokasi Nav -->
 
             <li class="nav-item">
                 <a class="nav-link collapsed" href="master-user.html">

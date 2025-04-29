@@ -18,6 +18,7 @@ return new class extends Migration
             
             $table->string('asset_code')->nullable();
             $table->string('brand')->nullable();
+            $table->string('tipe')->nullable();
             $table->string('serial_number')->nullable();
             $table->string('type')->nullable();
             $table->date('date_received')->nullable();
