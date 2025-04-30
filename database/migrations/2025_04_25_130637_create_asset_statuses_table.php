@@ -13,7 +13,7 @@ return new class extends Migration
     {
         Schema::create('asset_statuses', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('location_id')->constrained()->onDelete('cascade');
+            $table->foreignId('warehouse_master_site_id')->constrained('warehouse_master_site')->onDelete('cascade');
             $table->foreignId('category_id')->constrained()->onDelete('cascade');
             
             $table->string('asset_code')->nullable();
@@ -21,7 +21,7 @@ return new class extends Migration
             $table->string('tipe')->nullable();
             $table->string('serial_number')->nullable();
             $table->string('type')->nullable();
-            $table->date('date_received')->nullable();
+            $table->date('tanggal_visit')->nullable();
             $table->enum('status_barang', ['oke', 'rusak'])->default('oke');
             $table->text('notes')->nullable();
             $table->timestamps();

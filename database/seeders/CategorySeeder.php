@@ -19,5 +19,8 @@ class CategorySeeder extends Seeder
         Category::create(['name' => 'Monitor']);
         Category::create(['name' => 'AP']);
         Category::create(['name' => 'Print Server']);
+        Category::create(['name' => 'UPS']);
+        Category::create(['name' => 'LED TV']);
+        Category::create(['name' => 'Alat Scan']);
     }
 }

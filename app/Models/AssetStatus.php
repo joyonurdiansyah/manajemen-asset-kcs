@@ -9,9 +9,9 @@ class AssetStatus extends Model
 {
     protected $guarded = [];
 
-    public function location()
+    public function warehouseMasterSite()
     {
-        return $this->belongsTo(Location::class);
+        return $this->belongsTo(WarehouseMasterSite::class);
     }
 
     public function category()

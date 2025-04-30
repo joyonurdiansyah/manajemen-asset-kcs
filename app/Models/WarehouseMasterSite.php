@@ -9,7 +9,11 @@ class WarehouseMasterSite extends Model
 {
     use HasFactory;
 
-    protected $table = 'warehouse_master_site';
-
     protected $guarded = [];
+
+
+    public function assetStatuses()
+    {
+        return $this->hasMany(AssetStatus::class);
+    }
 }
