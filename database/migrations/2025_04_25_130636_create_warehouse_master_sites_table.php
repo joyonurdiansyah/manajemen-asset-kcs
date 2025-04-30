@@ -11,7 +11,7 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('warehouse_master_site', function (Blueprint $table) {
+        Schema::create('warehouse_master_sites', function (Blueprint $table) {
             $table->id();
             $table->string('kode', 10)->nullable();
             $table->string('nama_lokasi')->nullable();
@@ -25,6 +25,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('warehouse_master_site');
+        Schema::dropIfExists('warehouse_master_sites');
     }
 };

@@ -75,6 +75,6 @@ class WarehouseMasterSiteSeeder extends Seeder
             ['kode' => 901, 'nama_lokasi' => 'BUDGET', 'alamat' => 'JL NAROGONG KM 19'],
         ];
 
-        DB::table('warehouse_master_site')->insert($data);
+        DB::table('warehouse_master_sites')->insert($data);
     }
 }

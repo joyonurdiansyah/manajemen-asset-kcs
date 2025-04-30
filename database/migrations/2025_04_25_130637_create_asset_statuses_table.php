@@ -13,13 +13,15 @@ return new class extends Migration
     {
         Schema::create('asset_statuses', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('warehouse_master_site_id')->constrained('warehouse_master_site')->onDelete('cascade');
+            $table->foreignId('warehouse_master_site_id')->constrained('warehouse_master_sites')->onDelete('cascade');
             $table->foreignId('category_id')->constrained()->onDelete('cascade');
             
             $table->string('asset_code')->nullable();
             $table->string('brand')->nullable();
             $table->string('tipe')->nullable();
             $table->string('serial_number')->nullable();
+            $table->string('lokasi_awal')->nullable();
+            $table->string('lokasi_tujuan')->nullable();
             $table->string('type')->nullable();
             $table->date('tanggal_visit')->nullable();
             $table->enum('status_barang', ['oke', 'rusak'])->default('oke');

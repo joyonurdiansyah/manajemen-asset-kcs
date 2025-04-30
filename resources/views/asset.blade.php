@@ -127,11 +127,13 @@
                     <thead>
                         <tr>
                             <th>No</th>
-                            <th>Asset Code</th>
-                            <th>Brand</th>
+                            <th>Nomor Asset</th>
+                            <th>Merk Barang</th>
                             <th>Serial Number</th>
-                            <th>Pangkalan</th>
-                            <th>Date Received</th>
+                            <th>Lokasi Awal</th>
+                            <th>Lokasi Tujuan</th>
+                            <th>Type Barang</th>
+                            <th>Tanggal Kunjungan</th>
                             <th>Status Barang</th>
                             <th>Notes</th>
                             <th>Dibuat tanggal</th>
@@ -179,10 +181,14 @@
                         data: 'serial_number'
                     },
                     {
-                        data: 'Pangkalan'
+                        data: 'lokasi_awal'
                     },
                     {
-                        data: 'date_received',
+                        data: 'lokasi_tujuan'
+                    },
+                    { data: 'type' },
+                    {
+                        data: 'tanggal_visit',
                         render: function(data) {
                             if (data) {
                                 const date = new Date(data);
