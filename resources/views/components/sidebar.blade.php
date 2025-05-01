@@ -12,27 +12,32 @@
             <!-- Sidebar for IT Asset Management -->
 
             <li class="nav-item">
-                <a class="nav-link {{ Request::is('master-site') ? '' : 'collapsed' }}" data-bs-target="#lokasi-nav" data-bs-toggle="collapse" href="#">
-                    <i class="bi bi-geo-alt"></i><span>Master Lokasi</span><i class="bi bi-chevron-down ms-auto"></i>
+                <a class="nav-link {{ Request::is('master-site', 'user-division', 'master-divisi') ? '' : 'collapsed' }}" data-bs-target="#lokasi-nav" data-bs-toggle="collapse" href="#">
+                    <i class="bi bi-geo-alt"></i><span>Referensi Data</span><i class="bi bi-chevron-down ms-auto"></i>
                 </a>
-                <ul id="lokasi-nav" class="nav-content collapse {{ Request::is('master-site', 'master-divisi') ? 'show' : '' }}" data-bs-parent="#sidebar-nav">
+                <ul id="lokasi-nav" class="nav-content collapse {{ Request::is('master-site', 'user-division', 'master-divisi') ? 'show' : '' }} {{ Request::routeIs('category.home') ? 'show' : '' }}" data-bs-parent="#sidebar-nav">
                     <li>
-                        <a href="{{ route('site.home') }}" class="{{ Request::is('master-site') ? 'active' : '' }}">
+                        <a href="{{ route('site.home') }}" class="{{ Request::routeIs('site.home') ? 'active' : '' }}">
                             <i class="bi bi-circle"></i><span>Site</span>
                         </a>
                     </li>
                     <li>
-                        <a href="master-divisi.html">
-                            <i class="bi bi-circle"></i><span>Divisi</span>
+                        <a href="{{ route('user.division.home') }}" class="{{ Request::routeIs('user.division.home') ? 'active' : '' }}">
+                            <i class="bi bi-circle"></i><span>User & Divisi</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="{{ route('category.home') }}" class="{{ Request::routeIs('category.home') ? 'active' : '' }}">
+                            <i class="bi bi-circle"></i><span>Kategori Item</span>
                         </a>
                     </li>
                 </ul>
-            </li>
+            </li>            
             <!-- End Master Lokasi Nav -->
 
             <li class="nav-item">
                 <a class="nav-link collapsed" href="master-user.html">
-                    <i class="bi bi-people"></i><span>Master User</span>
+                    <i class="bi bi-people"></i><span>Role Permissions</span>
                 </a>
             </li><!-- End Master User Nav -->
 

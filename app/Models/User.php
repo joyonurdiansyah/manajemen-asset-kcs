@@ -45,4 +45,10 @@ class User extends Authenticatable
             'password' => 'hashed',
         ];
     }
+
+    public function division()
+    {
+        return $this->belongsTo(Division::class);
+    }
+
 }

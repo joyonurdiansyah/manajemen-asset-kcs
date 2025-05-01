@@ -155,7 +155,7 @@
     <script>
         $(document).ready(function() {
             let assetsTable = $('#assetsTable').DataTable({
-                processing: true,
+                processing: false,
                 serverSide: false,
                 responsive: true,
                 lengthMenu: [[5, 10, 15, 20, -1], [5, 10, 15, 20, "All"]], 

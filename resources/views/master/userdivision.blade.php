@@ -2,54 +2,6 @@
 
 @section('content')
     <style>
-
-.table-responsive {
-    overflow-x: auto;
-}
-
-table.dataTable {
-    width: 100%;
-    table-layout: fixed;
-}
-
-table.dataTable td {
-    word-wrap: break-word;
-    overflow: hidden;
-    text-overflow: ellipsis;
-}
-
-table.dataTable th, table.dataTable td {
-    text-align: center;
-}
-
-/* Lebar kolom bisa diatur sesuai kebutuhan */
-table.dataTable th:nth-child(1),
-table.dataTable td:nth-child(1) {
-    width: 10%;
-}
-
-table.dataTable th:nth-child(2),
-table.dataTable td:nth-child(2) {
-    width: 50%;
-}
-
-table.dataTable th:nth-child(3),
-table.dataTable td:nth-child(3) {
-    width: 40%;
-}
-
-.action-buttons button {
-    font-size: 0.8rem;
-    padding: 4px 8px;
-    display: flex;
-    align-items: center;
-    gap: 5px;
-}
-
-/* Modifikasi header */
-.card-header {
-    font-size: 1.1rem;
-}
         /* Button styling */
         .card-header {
             display: flex;
@@ -159,23 +111,26 @@ table.dataTable td:nth-child(3) {
 
     <div class="card">
         <div class="card-header">
-            <h5 class="card-title mb-0">Data Kategori Item</h5>
+            <h5 class="card-title mb-0">Data Master User & Division</h5>
             <div class="header-buttons">
                 <button type="button" class="btn btn-export">
                     <i class="fas fa-file-excel"></i> Export Excel
                 </button>
                 <button type="button" class="btn btn-add">
-                    <i class="fas fa-plus-circle"></i> Tambah Kategori Item
+                    <i class="fas fa-plus-circle"></i> Tambah Data User
                 </button>
             </div>
         </div>
         <div class="card-body">
             <div class="table-responsive">
-                <table id="category-table" class="table table-bordered table-striped">
+                <table id="user-table" class="table table-bordered table-striped">
                     <thead>
                         <tr>
                             <th class="w-10">No</th>
-                            <th class="w-30">Nama Kategori</th>
+                            <th class="w-25">Nama</th>
+                            <th class="w-25">Email</th>
+                            <th class="w-20">Kode Divisi</th>
+                            <th class="w-20">Nama Divisi</th>
                             <th class="w-10">Action</th>
                         </tr>
                     </thead>
@@ -193,16 +148,15 @@ table.dataTable td:nth-child(3) {
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <script>
         $(document).ready(function() {
-            $('#category-table').DataTable({
+            $('#user-table').DataTable({
                 processing: false,
                 serverSide: false,
                 responsive: true,
                 ajax: {
-                    url: '{{ route('category.get') }}',  
+                    url: '{{ route('user.division.get') }}',
                     type: 'GET',
                     dataSrc: function(json) {
-                        console.log(json); 
-                        return json.kategori_item; 
+                        return json.users; 
                     }
                 },
                 lengthMenu: [
@@ -213,14 +167,19 @@ table.dataTable td:nth-child(3) {
                 dom: '<"row mb-3"<"col-md-6"l><"col-md-6"f>>rt<"row mt-3"<"col-md-5"i><"col-md-7"p>>',
                 language: {
                     search: "<span class='me-2'>Search:</span> _INPUT_",
-                    searchPlaceholder: "Cari kategori...",
+                    searchPlaceholder: "Cari data...",
                     lengthMenu: "Show _MENU_ entries",
                     info: "Showing _START_ to _END_ of _TOTAL_ entries",
                     infoEmpty: "Showing 0 to 0 of 0 entries",
                     infoFiltered: "(filtered from _MAX_ total entries)"
                 },
-                columns: [
-                    {
+                drawCallback: function(settings) {
+                    if (settings._iDisplayLength === -1) {
+                        $('.dataTables_info').html('Showing 1 to ' + settings.fnRecordsTotal() +
+                            ' of ' + settings.fnRecordsTotal() + ' entries');
+                    }
+                },
+                columns: [{
                         data: null,
                         render: function(data, type, row, meta) {
                             return meta.row + 1;
@@ -228,21 +187,33 @@ table.dataTable td:nth-child(3) {
                     },
                     {
                         data: 'name',
-                        title: 'Kategori Item'
+                        title: 'Nama'
                     },
                     {
-                        data: 'id', 
+                        data: 'email',
+                        title: 'Email'
+                    },
+                    {
+                        data: 'division_code',
+                        title: 'Kode Divisi'
+                    },
+                    {
+                        data: 'division_name',
+                        title: 'Nama Divisi'
+                    },
+                    {
+                        data: 'id',
                         render: function(data, type, row) {
                             return `
-                                <div class="action-buttons">
-                                    <button type="button" class="btn-edit" data-id="${row.id}">
-                                        <i class="fas fa-edit"></i> Edit
-                                    </button>
-                                    <button type="button" class="btn-delete" data-id="${row.id}">
-                                        <i class="fas fa-trash"></i> Hapus
-                                    </button>
-                                </div>
-                            `;
+                        <div class="action-buttons">
+                            <button type="button" class="btn-edit" data-id="${data}">
+                                <i class="fas fa-edit"></i> Edit
+                            </button>
+                            <button type="button" class="btn-delete" data-id="${data}">
+                                <i class="fas fa-trash"></i> Hapus
+                            </button>
+                        </div>
+                    `;
                         },
                         title: 'Action' 
                     }

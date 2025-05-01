@@ -130,11 +130,11 @@
                             <th>Kode Lokasi</th>
                             <th>Nama Lokasi</th>
                             <th>Alamat</th>
-                            <th>Action</th> <!-- Add Action column -->
+                            <th>Action</th> 
                         </tr>
                     </thead>
                     <tbody>
-                        <!-- Data will be populated via AJAX -->
+                        {{-- response disini --}}
                     </tbody>
                 </table>
             </div>
@@ -150,7 +150,7 @@
     <script>
         $(document).ready(function() {
             $('#assetsTable').DataTable({
-                processing: true,
+                processing: false,
                 serverSide: false,
                 responsive: true,
                 ajax: {
