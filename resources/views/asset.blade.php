@@ -111,7 +111,7 @@
 
     <div class="card">
         <div class="card-header">
-            <h5 class="card-title mb-0">Data Asset IT</h5>
+            <h5 class="mb-0 card-title">Data Asset IT</h5>
             <div class="header-buttons">
                 <button type="button" class="btn btn-export">
                     <i class="fas fa-file-excel"></i> Export Excel
