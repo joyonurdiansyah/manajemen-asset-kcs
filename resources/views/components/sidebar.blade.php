@@ -35,11 +35,9 @@
             </li>            
             <!-- End Master Lokasi Nav -->
 
-            <li class="nav-item">
-                <a class="nav-link collapsed" href="master-user.html">
-                    <i class="bi bi-people"></i><span>Role Permissions</span>
-                </a>
-            </li><!-- End Master User Nav -->
+            <a class="nav-link {{ Request::routeIs('role.permissions.index') ? 'active' : 'collapsed' }}" href="{{ route('role.permissions.index') }}">
+                <i class="bi bi-people"></i><span>Role Permissions</span>
+            </a><!-- End Master User Nav -->
 
             <li class="nav-item">
                 <a class="nav-link {{ Request::is('asset-status*') ? 'active' : 'collapsed' }}"

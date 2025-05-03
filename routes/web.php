@@ -6,6 +6,7 @@ use App\Http\Controllers\AssetStatusController;
 use App\Http\Controllers\WarehouseSiteController;
 use App\Http\Controllers\DivisionUserController;
 use App\Http\Controllers\CategoryController;
+use App\Http\Controllers\PermissionController;
 use Illuminate\Support\Facades\Route;
 
 // Redirect root URL berdasarkan status login
@@ -27,7 +28,7 @@ Route::middleware('auth')->group(function () {
 
     // Home
     Route::get('/home', function () {
-        return view('home'); // Ganti jika menggunakan controller
+        return view('home'); 
     })->name('home');
 
     // Manage Asset
@@ -55,6 +56,10 @@ Route::middleware('auth')->group(function () {
     // Category
     Route::get('/category-data', [CategoryController::class, 'categoryHome'])->name('category.home');
     Route::get('/category-data/get', [CategoryController::class, 'CategoryGet'])->name('category.get');
+
+    // permission
+    Route::get('/permissions', [PermissionController::class, 'permissionHome'])->name('role.permissions.index');
+    Route::post('/permissions/update', [PermissionController::class, 'update'])->name('permissions.update');
 });
 
 // Guest area (hanya bisa diakses jika belum login)
