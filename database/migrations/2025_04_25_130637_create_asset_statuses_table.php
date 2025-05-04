@@ -24,7 +24,7 @@ return new class extends Migration
             $table->string('lokasi_tujuan')->nullable();
             $table->string('type')->nullable();
             $table->date('tanggal_visit')->nullable();
-            $table->enum('status_barang', ['oke', 'rusak'])->default('oke');
+            $table->enum('status_barang', ['oke', 'rusak', "perbaikan"])->default('oke');
             $table->text('notes')->nullable();
             $table->timestamps();
         });

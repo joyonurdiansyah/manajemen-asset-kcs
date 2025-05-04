@@ -52,6 +52,10 @@ Route::middleware('auth')->group(function () {
     // User Divisions
     Route::get('/user-division', [DivisionUserController::class, 'userDivisionHome'])->name('user.division.home');
     Route::get('/user-division/get', [DivisionUserController::class, 'getAllDivisionsWithUsers'])->name('user.division.get');
+    Route::post('/user-division/store', [DivisionUserController::class, 'store'])->name('user.division.store');
+    Route::get('/user-division/{id}/edit', [DivisionUserController::class, 'edit'])->name('user.division.edit');
+    Route::put('/user-division/{id}', [DivisionUserController::class, 'update'])->name('user.division.update');
+    Route::delete('/user-division/{id}', [DivisionUserController::class, 'destroy'])->name('user.division.destroy');
 
     // Category
     Route::get('/category-data', [CategoryController::class, 'categoryHome'])->name('category.home');
