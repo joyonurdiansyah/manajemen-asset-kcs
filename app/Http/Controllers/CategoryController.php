@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Models\Category;
+use Illuminate\Support\Facades\Validator;
 
 class CategoryController extends Controller
 {
@@ -12,12 +13,122 @@ class CategoryController extends Controller
     {
         return view('master.category');
     }
-    public function CategoryGet()
+
+    /**
+     * Get all categories as JSON
+     */
+    public function categoryGet()
     {
-        $categories = Category::select('id', 'name')->get();
+        $categories = Category::orderBy('id', 'desc')->get();
+        
+        return response()->json([
+            'success' => true,
+            'kategori_item' => $categories
+        ]);
+    }
+
+    /**
+     * Store a new category
+     */
+    public function categoryStore(Request $request)
+    {
+        $validator = Validator::make($request->all(), [
+            'name' => 'required|string|max:255|unique:categories,name'
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'success' => false,
+                'message' => $validator->errors()->first()
+            ]);
+        }
+
+        $category = Category::create([
+            'name' => $request->name
+        ]);
 
         return response()->json([
-            'kategori_item' => $categories
+            'success' => true,
+            'message' => 'Kategori berhasil ditambahkan',
+            'data' => $category
+        ]);
+    }
+
+    /**
+     * Get a specific category
+     */
+    public function categoryShow($id)
+    {
+        $category = Category::find($id);
+        
+        if (!$category) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Kategori tidak ditemukan'
+            ]);
+        }
+
+        return response()->json([
+            'success' => true,
+            'data' => $category
+        ]);
+    }
+
+    /**
+     * Update a category
+     */
+    public function categoryUpdate(Request $request, $id)
+    {
+        $validator = Validator::make($request->all(), [
+            'name' => 'required|string|max:255|unique:categories,name,'.$id
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'success' => false,
+                'message' => $validator->errors()->first()
+            ]);
+        }
+
+        $category = Category::find($id);
+        
+        if (!$category) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Kategori tidak ditemukan'
+            ]);
+        }
+
+        $category->update([
+            'name' => $request->name
+        ]);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Kategori berhasil diperbarui',
+            'data' => $category
+        ]);
+    }
+
+    /**
+     * Delete a category
+     */
+    public function categoryDestroy($id)
+    {
+        $category = Category::find($id);
+        
+        if (!$category) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Kategori tidak ditemukan'
+            ]);
+        }
+
+        $category->delete();
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Kategori berhasil dihapus'
         ]);
     }
 }

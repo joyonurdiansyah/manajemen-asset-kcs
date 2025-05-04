@@ -60,6 +60,10 @@ Route::middleware('auth')->group(function () {
     // Category
     Route::get('/category-data', [CategoryController::class, 'categoryHome'])->name('category.home');
     Route::get('/category-data/get', [CategoryController::class, 'CategoryGet'])->name('category.get');
+    Route::post('/category-data/store', [CategoryController::class, 'categoryStore'])->name('category.store');
+    Route::get('/category-data/{id}', [CategoryController::class, 'categoryShow'])->name('category.show');
+    Route::patch('/category-data/update/{id}', [CategoryController::class, 'categoryUpdate'])->name('category.update');
+    Route::delete('/category-data/delete/{id}', [CategoryController::class, 'categoryDestroy'])->name('category.destroy');
 
     // permission
     Route::get('/permissions', [PermissionController::class, 'permissionHome'])->name('role.permissions.index');
