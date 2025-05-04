@@ -13,7 +13,6 @@ class WarehouseSiteController extends Controller
     {
         return view('master.site');
     }
-    
 
     public function getSiteData(Request $request)
     {
@@ -37,13 +36,13 @@ class WarehouseSiteController extends Controller
     public function store(Request $request)
     {
         $request->validate([
-            'kode_lokasi' => 'required|unique:warehouse_sites,kode_lokasi',
+            'kode' => 'required|unique:warehouse_master_sites,kode',
             'nama_lokasi' => 'required',
             'alamat' => 'required',
         ]);
         
         $site = WarehouseMasterSite::create([
-            'kode_lokasi' => $request->kode_lokasi,
+            'kode' => $request->kode,
             'nama_lokasi' => $request->nama_lokasi,
             'alamat' => $request->alamat,
         ]);
@@ -60,14 +59,14 @@ class WarehouseSiteController extends Controller
     public function update(Request $request, $id)
     {
         $request->validate([
-            'kode_lokasi' => 'required|unique:warehouse_sites,kode_lokasi,'.$id,
+            'kode' => 'required|unique:warehouse_master_sites,kode,'.$id,
             'nama_lokasi' => 'required',
             'alamat' => 'required',
         ]);
         
         $site = WarehouseMasterSite::find($id);
         $site->update([
-            'kode_lokasi' => $request->kode_lokasi,
+            'kode' => $request->kode,
             'nama_lokasi' => $request->nama_lokasi,
             'alamat' => $request->alamat,
         ]);

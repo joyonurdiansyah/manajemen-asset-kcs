@@ -1,113 +1,222 @@
 @extends('layouts.app')
 
 @section('content')
-    <style>
-        /* Button styling */
-        .card-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 1rem 1.25rem;
-            background-color: #f8f9fa;
-            border-bottom: 1px solid rgba(0,0,0,.125);
-        }
-        
-        .btn-add {
-            background-color: #28a745;
-            color: white;
-            border: none;
-            padding: 0.375rem 0.75rem;
-            border-radius: 0.25rem;
-            font-weight: 500;
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-        }
-        
-        .btn-add:hover {
-            background-color: #218838;
-        }
-        
-        .btn-add i {
-            font-size: 0.875rem;
-        }
+<style>
+    /* Card styling */
+    .card {
+        border-radius: 8px;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        margin-bottom: 24px;
+        border: none;
+    }
+    
+    /* Breadcrumb styling */
+    .breadcrumb {
+        background-color: transparent;
+        padding: 0.5rem 0;
+        margin-bottom: 1.5rem;
+    }
+    
+    .breadcrumb-item + .breadcrumb-item::before {
+        content: ">";
+    }
+    
+    .page-header {
+        margin-bottom: 1.5rem;
+    }
+    
+    /* Button styling */
+    .card-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 1rem 1.25rem;
+        background-color: #f8f9fa;
+        border-bottom: 1px solid rgba(0,0,0,.125);
+        border-radius: 8px 8px 0 0;
+    }
 
-        /* Export button styling */
-        .btn-export {
-            background-color: #17a2b8;
-            color: white;
-            border: none;
-            padding: 0.375rem 0.75rem;
-            border-radius: 0.25rem;
-            font-weight: 500;
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-            margin-right: 10px;
-        }
-        
-        .btn-export:hover {
-            background-color: #138496;
-        }
-        
-        .btn-export i {
-            font-size: 0.875rem;
-        }
-        
-        .header-buttons {
-            display: flex;
-            gap: 10px;
-        }
+    .btn-add {
+        background-color: #28a745;
+        color: white;
+        border: none;
+        padding: 0.5rem 1rem;
+        border-radius: 0.25rem;
+        font-weight: 500;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        transition: all 0.3s ease;
+    }
 
-        div.dataTables_length {
-            margin-top: 10px;
-            margin-bottom: 10px;
-        }
+    .btn-add:hover {
+        background-color: #218838;
+        transform: translateY(-2px);
+        box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+    }
 
-        div.dataTables_filter {
-            margin-top: 10px;
-            margin-bottom: 10px;
-        }
-        
-        /* Action button styling */
-        .action-buttons {
-            display: flex;
-            gap: 5px;
-            justify-content: center;
-        }
-        
-        .btn-edit {
-            background-color: #007bff;
-            color: white;
-            border: none;
-            padding: 4px 8px;
-            border-radius: 3px;
-            font-size: 0.8rem;
-            display: flex;
-            align-items: center;
-            gap: 3px;
-        }
-        
-        .btn-edit:hover {
-            background-color: #0069d9;
-        }
-        
-        .btn-delete {
-            background-color: #dc3545;
-            color: white;
-            border: none;
-            padding: 4px 8px;
-            border-radius: 3px;
-            font-size: 0.8rem;
-            display: flex;
-            align-items: center;
-            gap: 3px;
-        }
-        
-        .btn-delete:hover {
-            background-color: #c82333;
-        }
-    </style>
+    .btn-add i {
+        font-size: 0.875rem;
+    }
+
+    /* Export button styling */
+    .btn-export {
+        background-color: #17a2b8;
+        color: white;
+        border: none;
+        padding: 0.5rem 1rem;
+        border-radius: 0.25rem;
+        font-weight: 500;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        margin-right: 10px;
+        transition: all 0.3s ease;
+    }
+
+    .btn-export:hover {
+        background-color: #138496;
+        transform: translateY(-2px);
+        box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+    }
+
+    .btn-export i {
+        font-size: 0.875rem;
+    }
+
+    .header-buttons {
+        display: flex;
+        gap: 10px;
+    }
+    
+    /* Table styling */
+    .table {
+        margin-bottom: 0;
+    }
+    
+    .table thead th {
+        background-color: #f2f2f2;
+        border-bottom: 2px solid #dee2e6;
+        color: #495057;
+        font-weight: 600;
+        text-transform: uppercase;
+        font-size: 0.8rem;
+        letter-spacing: 0.5px;
+        padding: 12px 15px;
+        vertical-align: middle;
+    }
+    
+    .table tbody td {
+        padding: 12px 15px;
+        vertical-align: middle;
+        border-color: #edf2f9;
+    }
+    
+    .table-striped tbody tr:nth-of-type(odd) {
+        background-color: rgba(0,0,0,.02);
+    }
+    
+    .table-bordered {
+        border: 1px solid #dee2e6;
+    }
+    
+    .table-bordered td, .table-bordered th {
+        border: 1px solid #dee2e6;
+    }
+    
+    /* DataTables styling */
+    div.dataTables_wrapper div.dataTables_length {
+        margin: 15px 0;
+        padding-left: 15px;
+    }
+
+    div.dataTables_wrapper div.dataTables_filter {
+        margin: 15px 0;
+        padding-right: 15px;
+    }
+    
+    div.dataTables_wrapper div.dataTables_info {
+        padding: 15px;
+        color: #6c757d;
+    }
+    
+    div.dataTables_wrapper div.dataTables_paginate {
+        padding: 15px;
+    }
+    
+    .dataTables_wrapper .dataTables_paginate .paginate_button {
+        padding: 0.375rem 0.75rem;
+        margin-left: 2px;
+        border-radius: 0.25rem;
+    }
+    
+    .dataTables_wrapper .dataTables_paginate .paginate_button.current {
+        background: #007bff;
+        border-color: #007bff;
+        color: white !important;
+    }
+    
+    .dataTables_wrapper .dataTables_paginate .paginate_button:hover {
+        background: #e9ecef;
+        border-color: #dee2e6;
+    }
+
+    /* Action button styling */
+    .action-buttons {
+        display: flex;
+        gap: 8px;
+        justify-content: center;
+    }
+
+    .btn-edit {
+        background-color: #007bff;
+        color: white;
+        border: none;
+        padding: 6px 12px;
+        border-radius: 4px;
+        font-size: 0.8rem;
+        display: flex;
+        align-items: center;
+        gap: 5px;
+        transition: all 0.2s ease;
+    }
+
+    .btn-edit:hover {
+        background-color: #0069d9;
+        transform: translateY(-1px);
+    }
+
+    .btn-delete {
+        background-color: #dc3545;
+        color: white;
+        border: none;
+        padding: 6px 12px;
+        border-radius: 4px;
+        font-size: 0.8rem;
+        display: flex;
+        align-items: center;
+        gap: 5px;
+        transition: all 0.2s ease;
+    }
+
+    .btn-delete:hover {
+        background-color: #c82333;
+        transform: translateY(-1px);
+    }
+</style>
+
+<div class="container-fluid">
+    <!-- Page Header -->
+    <div class="page-header">
+        <h4 class="fw-bold">Data Asset IT</h4>
+        <!-- Breadcrumb -->
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a href="{{ route('dashboard') }}">Home</a></li>
+                <li class="breadcrumb-item active">Data Asset</li>
+            </ol>
+        </nav>
+    </div>
 
     <div class="card">
         <div class="card-header">
@@ -146,6 +255,9 @@
             </div>
         </div>
     </div>
+</div>
+
+    
 @endsection
 
 @section('scripts')
