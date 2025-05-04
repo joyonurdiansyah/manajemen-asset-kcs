@@ -1,6 +1,7 @@
 @extends('layouts.app')
 
 @section('content')
+
 <style>
     /* Card styling */
     .card {
@@ -222,10 +223,10 @@
         <div class="card-header">
             <h5 class="mb-0 card-title">Data Asset IT</h5>
             <div class="header-buttons">
-                <button type="button" class="btn btn-export">
+                <button type="button" class="btn btn-export" id="exportBtn">
                     <i class="fas fa-file-excel"></i> Export Excel
                 </button>
-                <button type="button" class="btn btn-add">
+                <button type="button" class="btn btn-add" id="addAssetBtn">
                     <i class="fas fa-plus-circle"></i> Tambah Data Asset IT
                 </button>
             </div>
@@ -257,7 +258,283 @@
     </div>
 </div>
 
-    
+<!-- Add Asset Modal -->
+<div class="modal fade" id="addAssetModal" tabindex="-1" aria-labelledby="addAssetModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="addAssetModalLabel">Tambah Data Asset IT</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form id="addAssetForm">
+                <div class="modal-body">
+                    @csrf
+                    <div class="mb-3 row">
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label for="warehouse_master_site_id">Warehouse Site</label>
+                                <select class="form-control" id="warehouse_master_site_id" name="warehouse_master_site_id" required>
+                                    <option value="">Pilih Warehouse</option>
+                                    @foreach(App\Models\WarehouseMasterSite::all() as $site)
+                                        <option value="{{ $site->id }}">{{ $site->nama_lokasi }}</option>
+                                    @endforeach
+                                </select>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label for="category_id">Kategori</label>
+                                <select class="form-control" id="category_id" name="category_id" required>
+                                    <option value="">Pilih Kategori</option>
+                                    @foreach(App\Models\Category::all() as $category)
+                                        <option value="{{ $category->id }}">{{ $category->name }}</option>
+                                    @endforeach
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="mb-3 row">
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label for="asset_code">Nomor Asset</label>
+                                <input type="text" class="form-control" id="asset_code" name="asset_code" required>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label for="brand">Merk Barang</label>
+                                <input type="text" class="form-control" id="brand" name="brand" required>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="mb-3 row">
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label for="tipe">Tipe</label>
+                                <input type="text" class="form-control" id="tipe" name="tipe">
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label for="serial_number">Serial Number</label>
+                                <input type="text" class="form-control" id="serial_number" name="serial_number">
+                            </div>
+                        </div>
+                    </div>
+                    <div class="mb-3 row">
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label for="lokasi_awal">Lokasi Awal</label>
+                                <input type="text" class="form-control" id="lokasi_awal" name="lokasi_awal">
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label for="lokasi_tujuan">Lokasi Tujuan</label>
+                                <input type="text" class="form-control" id="lokasi_tujuan" name="lokasi_tujuan">
+                            </div>
+                        </div>
+                    </div>
+                    <div class="mb-3 row">
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label for="type">Type Barang</label>
+                                <input type="text" class="form-control" id="type" name="type">
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label for="tanggal_visit">Tanggal Kunjungan</label>
+                                <input type="date" class="form-control" id="tanggal_visit" name="tanggal_visit">
+                            </div>
+                        </div>
+                    </div>
+                    <div class="mb-3 row">
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label for="status_barang">Status Barang</label>
+                                <select class="form-control" id="status_barang" name="status_barang" required>
+                                    <option value="oke">Oke</option>
+                                    <option value="rusak">Rusak</option>
+                                    <option value="perbaikan">Perbaikan</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label for="notes">Notes</label>
+                                <textarea class="form-control" id="notes" name="notes" rows="3"></textarea>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Tutup</button>
+                    <button type="submit" class="btn btn-primary">Simpan</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Edit Asset Modal -->
+<div class="modal fade" id="editAssetModal" tabindex="-1" aria-labelledby="editAssetModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="editAssetModalLabel">Edit Data Asset IT</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form id="editAssetForm">
+                <div class="modal-body">
+                    @csrf
+                    @method('PUT')
+                    <input type="hidden" id="edit_asset_id" name="asset_id">
+                    <div class="mb-3 row">
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label for="edit_warehouse_master_site_id">Warehouse Site</label>
+                                <select class="form-control" id="edit_warehouse_master_site_id" name="warehouse_master_site_id" required>
+                                    <option value="">Pilih Warehouse</option>
+                                    @foreach(App\Models\WarehouseMasterSite::all() as $site)
+                                        <option value="{{ $site->id }}">{{ $site->name }}</option>
+                                    @endforeach
+                                </select>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label for="edit_category_id">Kategori</label>
+                                <select class="form-control" id="edit_category_id" name="category_id" required>
+                                    <option value="">Pilih Kategori</option>
+                                    @foreach(App\Models\Category::all() as $category)
+                                        <option value="{{ $category->id }}">{{ $category->name }}</option>
+                                    @endforeach
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="mb-3 row">
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label for="edit_asset_code">Nomor Asset</label>
+                                <input type="text" class="form-control" id="edit_asset_code" name="asset_code" required>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label for="edit_brand">Merk Barang</label>
+                                <input type="text" class="form-control" id="edit_brand" name="brand" required>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="mb-3 row">
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label for="edit_tipe">Tipe</label>
+                                <input type="text" class="form-control" id="edit_tipe" name="tipe">
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label for="edit_serial_number">Serial Number</label>
+                                <input type="text" class="form-control" id="edit_serial_number" name="serial_number">
+                            </div>
+                        </div>
+                    </div>
+                    <div class="mb-3 row">
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label for="edit_lokasi_awal">Lokasi Awal</label>
+                                <input type="text" class="form-control" id="edit_lokasi_awal" name="lokasi_awal">
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label for="edit_lokasi_tujuan">Lokasi Tujuan</label>
+                                <input type="text" class="form-control" id="edit_lokasi_tujuan" name="lokasi_tujuan">
+                            </div>
+                        </div>
+                    </div>
+                    <div class="mb-3 row">
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label for="edit_type">Type Barang</label>
+                                <input type="text" class="form-control" id="edit_type" name="type">
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label for="edit_tanggal_visit">Tanggal Kunjungan</label>
+                                <input type="date" class="form-control" id="edit_tanggal_visit" name="tanggal_visit">
+                            </div>
+                        </div>
+                    </div>
+                    <div class="mb-3 row">
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label for="edit_status_barang">Status Barang</label>
+                                <select class="form-control" id="edit_status_barang" name="status_barang" required>
+                                    <option value="oke">Oke</option>
+                                    <option value="rusak">Rusak</option>
+                                    <option value="perbaikan">Perbaikan</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label for="edit_notes">Notes</label>
+                                <textarea class="form-control" id="edit_notes" name="notes" rows="3"></textarea>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Tutup</button>
+                    <button type="submit" class="btn btn-primary">Simpan Perubahan</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Delete Confirmation Modal -->
+<div class="modal fade" id="deleteAssetModal" tabindex="-1" aria-labelledby="deleteAssetModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="deleteAssetModalLabel">Konfirmasi Hapus</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p>Apakah Anda yakin ingin menghapus data asset ini?</p>
+                <p>Asset: <span id="delete_asset_name"></span></p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
+                <button type="button" class="btn btn-danger" id="confirmDelete">Hapus</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Alert Modal -->
+<div class="modal fade" id="alertModal" tabindex="-1" aria-labelledby="alertModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="alertModalLabel">Notifikasi</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div id="alertMessage"></div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-primary" data-bs-dismiss="modal">OK</button>
+            </div>
+        </div>
+    </div>
+</div>
 @endsection
 
 @section('scripts')
@@ -266,8 +543,16 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <script>
         $(document).ready(function() {
+            // Setup CSRF Token for all AJAX requests
+            $.ajaxSetup({
+                headers: {
+                    'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                }
+            });
+
+            // Initialize DataTable
             let assetsTable = $('#assetsTable').DataTable({
-                processing: false,
+                processing: true,
                 serverSide: false,
                 responsive: true,
                 lengthMenu: [[5, 10, 15, 20, -1], [5, 10, 15, 20, "All"]], 
@@ -275,7 +560,6 @@
                 ajax: {
                     url: "{{ url('/assets/data') }}",
                     dataSrc: function(json) {
-                        console.log(json);
                         return json.data;
                     }
                 },
@@ -283,21 +567,11 @@
                         data: null,
                         render: (data, type, row, meta) => meta.row + 1
                     },
-                    {
-                        data: 'asset_code'
-                    },
-                    {
-                        data: 'brand'
-                    },
-                    {
-                        data: 'serial_number'
-                    },
-                    {
-                        data: 'lokasi_awal'
-                    },
-                    {
-                        data: 'lokasi_tujuan'
-                    },
+                    { data: 'asset_code' },
+                    { data: 'brand' },
+                    { data: 'serial_number' },
+                    { data: 'lokasi_awal' },
+                    { data: 'lokasi_tujuan' },
                     { data: 'type' },
                     {
                         data: 'tanggal_visit',
@@ -307,10 +581,7 @@
                                 const year = date.getFullYear();
                                 const month = String(date.getMonth() + 1).padStart(2, '0');
                                 const day = String(date.getDate()).padStart(2, '0');
-                                const hours = String(date.getHours()).padStart(2, '0');
-                                const minutes = String(date.getMinutes()).padStart(2, '0');
-
-                                return `${year}-${month}-${day} ${hours}:${minutes}`;
+                                return `${year}-${month}-${day}`;
                             }
                             return '';
                         }
@@ -324,6 +595,8 @@
                                 badgeClass = 'bg-success';
                             } else if (data === 'rusak') {
                                 badgeClass = 'bg-danger';
+                            } else if (data === 'perbaikan') {
+                                badgeClass = 'bg-warning';
                             } else {
                                 badgeClass = 'bg-secondary'; 
                             }
@@ -332,9 +605,7 @@
                             return '<span class="badge ' + badgeClass + '">' + capitalizedData + '</span>';
                         }
                     },
-                    {
-                        data: 'notes'
-                    },
+                    { data: 'notes' },
                     {
                         data: 'created_at',
                         render: function(data) {
@@ -358,10 +629,11 @@
                         render: function(data, type, row) {
                             return `
                                 <div class="action-buttons">
-                                    <button class="btn-edit" data-id="${row.id}" title="Edit">
+                                    <button class="btn btn-sm btn-edit" data-id="${row.id}" title="Edit">
                                         <i class="fas fa-edit"></i> Edit
                                     </button>
-                                    <button class="btn-delete" data-id="${row.id}" title="Delete">
+                                    <button class="btn btn-sm btn-delete" data-id="${row.id}" 
+                                            data-asset="${row.asset_code}" title="Delete">
                                         <i class="fas fa-trash-alt"></i> Delete
                                     </button>
                                 </div>
@@ -384,105 +656,178 @@
                     }
                 }
             });
-            
-            $('.btn-add').click(function() {
-                window.location.href = "{{ url('/assets/create') }}";
-            });
-            
-            $('.btn-export').click(function() {
-                let tableData = [];
-                let headers = [];
-                
-                $('#assetsTable thead th').each(function(index) {
-                    if (index < $('#assetsTable thead th').length - 1) { 
-                        headers.push($(this).text());
-                    }
-                });
-                
-                tableData.push(headers);
-                
-                let visibleData = assetsTable.rows({ search: 'applied' }).data();
-                
-                visibleData.each(function(rowData, index) {
-                    let row = [];
-                    
-                    // tambah nomor kolom
-                    row.push(index + 1);
-                    row.push(rowData.asset_code);
-                    row.push(rowData.brand);
-                    row.push(rowData.serial_number);
-                    row.push(rowData.Pangkalan);
-                    
-                    // Format Tanggal
-                    let dateReceived = '';
-                    if (rowData.date_received) {
-                        const date = new Date(rowData.date_received);
-                        const year = date.getFullYear();
-                        const month = String(date.getMonth() + 1).padStart(2, '0');
-                        const day = String(date.getDate()).padStart(2, '0');
-                        const hours = String(date.getHours()).padStart(2, '0');
-                        const minutes = String(date.getMinutes()).padStart(2, '0');
-                        dateReceived = `${year}-${month}-${day} ${hours}:${minutes}`;
-                    }
-                    row.push(dateReceived);
-                    row.push(rowData.status_barang.charAt(0).toUpperCase() + rowData.status_barang.slice(1));
-                    row.push(rowData.notes);
-                    
-                    let createdAt = '';
-                    if (rowData.created_at) {
-                        const date = new Date(rowData.created_at);
-                        const year = date.getFullYear();
-                        const month = String(date.getMonth() + 1).padStart(2, '0');
-                        const day = String(date.getDate()).padStart(2, '0');
-                        const hours = String(date.getHours()).padStart(2, '0');
-                        const minutes = String(date.getMinutes()).padStart(2, '0');
-                        createdAt = `${year}-${month}-${day} ${hours}:${minutes}`;
-                    }
-                    row.push(createdAt);
-                    
-                    tableData.push(row);
-                });
-                
 
-                const wb = XLSX.utils.book_new();
-                const ws = XLSX.utils.aoa_to_sheet(tableData);
-                
-
-                XLSX.utils.book_append_sheet(wb, ws, "Assets");
-                const now = new Date();
-                const dateStr = now.getFullYear() + '-' + 
-                String(now.getMonth() + 1).padStart(2, '0') + '-' + 
-                String(now.getDate()).padStart(2, '0');
-                
-
-                XLSX.writeFile(wb, `Assets_Report_${dateStr}.xlsx`);
+            // Show Add Modal
+            $('#addAssetBtn').on('click', function() {
+                $('#addAssetForm')[0].reset();
+                $('#addAssetModal').modal('show');
             });
-            
-            $('#assetsTable').on('click', '.btn-edit', function() {
-                const id = $(this).data('id');
-                window.location.href = "{{ url('/assets/edit') }}/" + id;
-            });
-            
-            $('#assetsTable').on('click', '.btn-delete', function() {
-                const id = $(this).data('id');
+
+            // Add Asset Form Submit
+            $('#addAssetForm').on('submit', function(e) {
+                e.preventDefault();
                 
-                if (confirm('Are you sure you want to delete this asset?')) {
-                    $.ajax({
-                        url: "{{ url('/assets/delete') }}/" + id,
-                        type: 'DELETE',
-                        data: {
-                            "_token": "{{ csrf_token() }}"
-                        },
-                        success: function(result) {
-                            $('#assetsTable').DataTable().ajax.reload();
-                            alert('Asset deleted successfully!');
-                        },
-                        error: function(error) {
-                            console.error('Error:', error);
-                            alert('Failed to delete asset. Please try again.');
+                $.ajax({
+                    url: "{{ route('assets.store') }}",
+                    method: 'POST',
+                    data: $(this).serialize(),
+                    success: function(response) {
+                        $('#addAssetModal').modal('hide');
+                        assetsTable.ajax.reload();
+                        
+                        $('#alertMessage').html(`
+                            <div class="alert alert-success">
+                                Data asset berhasil ditambahkan.
+                            </div>
+                        `);
+                        $('#alertModal').modal('show');
+                    },
+                    error: function(xhr) {
+                        let errorMessage = 'Terjadi kesalahan saat menyimpan data.';
+                        
+                        if (xhr.responseJSON && xhr.responseJSON.errors) {
+                            errorMessage = '<ul>';
+                            $.each(xhr.responseJSON.errors, function(key, value) {
+                                errorMessage += `<li>${value}</li>`;
+                            });
+                            errorMessage += '</ul>';
                         }
-                    });
-                }
+                        
+                        $('#alertMessage').html(`
+                            <div class="alert alert-danger">
+                                ${errorMessage}
+                            </div>
+                        `);
+                        $('#alertModal').modal('show');
+                    }
+                });
+            });
+
+            // Edit Asset
+            $(document).on('click', '.btn-edit', function() {
+                const assetId = $(this).data('id');
+                
+                // Fetch asset data
+                $.ajax({
+                    url: "{{ url('/assets/edit') }}/" + assetId,
+                    method: 'GET',
+                    success: function(response) {
+                        const asset = response.asset;
+                        
+                        // Fill the edit form with asset data
+                        $('#edit_asset_id').val(asset.id);
+                        $('#edit_warehouse_master_site_id').val(asset.warehouse_master_site_id);
+                        $('#edit_category_id').val(asset.category_id);
+                        $('#edit_asset_code').val(asset.asset_code);
+                        $('#edit_brand').val(asset.brand);
+                        $('#edit_tipe').val(asset.tipe);
+                        $('#edit_serial_number').val(asset.serial_number);
+                        $('#edit_lokasi_awal').val(asset.lokasi_awal);
+                        $('#edit_lokasi_tujuan').val(asset.lokasi_tujuan);
+                        $('#edit_type').val(asset.type);
+                        $('#edit_tanggal_visit').val(asset.tanggal_visit);
+                        $('#edit_status_barang').val(asset.status_barang);
+                        $('#edit_notes').val(asset.notes);
+                        
+                        // Show the edit modal
+                        $('#editAssetModal').modal('show');
+                    },
+                    error: function() {
+                        $('#alertMessage').html(`
+                            <div class="alert alert-danger">
+                                Gagal mengambil data asset.
+                            </div>
+                        `);
+                        $('#alertModal').modal('show');
+                    }
+                });
+            });
+
+            // Update Asset Form Submit
+            $('#editAssetForm').on('submit', function(e) {
+                e.preventDefault();
+                const assetId = $('#edit_asset_id').val();
+                
+                $.ajax({
+                    url: "{{ url('/assets/update') }}/" + assetId,
+                    method: 'POST',
+                    data: $(this).serialize(),
+                    success: function(response) {
+                        $('#editAssetModal').modal('hide');
+                        assetsTable.ajax.reload();
+                        
+                        $('#alertMessage').html(`
+                            <div class="alert alert-success">
+                                Data asset berhasil diperbarui.
+                            </div>
+                        `);
+                        $('#alertModal').modal('show');
+                    },
+                    error: function(xhr) {
+                        let errorMessage = 'Terjadi kesalahan saat memperbarui data.';
+                        
+                        if (xhr.responseJSON && xhr.responseJSON.errors) {
+                            errorMessage = '<ul>';
+                            $.each(xhr.responseJSON.errors, function(key, value) {
+                                errorMessage += `<li>${value}</li>`;
+                            });
+                            errorMessage += '</ul>';
+                        }
+                        
+                        $('#alertMessage').html(`
+                            <div class="alert alert-danger">
+                                ${errorMessage}
+                            </div>
+                        `);
+                        $('#alertModal').modal('show');
+                    }
+                });
+            });
+
+            // Delete Asset
+            $(document).on('click', '.btn-delete', function() {
+                const assetId = $(this).data('id');
+                const assetCode = $(this).data('asset');
+                
+                $('#delete_asset_name').text(assetCode);
+                $('#confirmDelete').data('id', assetId);
+                $('#deleteAssetModal').modal('show');
+            });
+
+            // Confirm Delete
+            $('#confirmDelete').on('click', function() {
+                const assetId = $(this).data('id');
+                
+                $.ajax({
+                    url: "{{ url('/assets/destroy') }}/" + assetId,
+                    method: 'DELETE',
+                    success: function(response) {
+                        $('#deleteAssetModal').modal('hide');
+                        assetsTable.ajax.reload();
+                        
+                        $('#alertMessage').html(`
+                            <div class="alert alert-success">
+                                Data asset berhasil dihapus.
+                            </div>
+                        `);
+                        $('#alertModal').modal('show');
+                    },
+                    error: function() {
+                        $('#deleteAssetModal').modal('hide');
+                        
+                        $('#alertMessage').html(`
+                            <div class="alert alert-danger">
+                                Gagal menghapus data asset.
+                            </div>
+                        `);
+                        $('#alertModal').modal('show');
+                    }
+                });
+            });
+
+            // Export Excel
+            $('#exportBtn').on('click', function() {
+                window.location.href = "{{ route('assets.export') }}";
             });
         });
     </script>
