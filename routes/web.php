@@ -7,6 +7,7 @@ use App\Http\Controllers\WarehouseSiteController;
 use App\Http\Controllers\DivisionUserController;
 use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\PermissionController;
+use App\Http\Controllers\subcategoryController;
 use Illuminate\Support\Facades\Route;
 
 // Redirect root URL berdasarkan status login
@@ -68,6 +69,10 @@ Route::middleware('auth')->group(function () {
     // permission
     Route::get('/permissions', [PermissionController::class, 'permissionHome'])->name('role.permissions.index');
     Route::post('/permissions/update', [PermissionController::class, 'update'])->name('permissions.update');
+
+
+    // sub category
+    Route::get('/sub/category', [subcategoryController::class, 'subcategoryHome'])->name('subCategory.index');
 });
 
 // Guest area (hanya bisa diakses jika belum login)

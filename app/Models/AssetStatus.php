@@ -23,4 +23,9 @@ class AssetStatus extends Model
     {
         return $this->belongsTo(Asset::class);
     }
+
+    public function subcategory()
+    {
+        return $this->belongsTo(Subcategory::class);
+    }
 }

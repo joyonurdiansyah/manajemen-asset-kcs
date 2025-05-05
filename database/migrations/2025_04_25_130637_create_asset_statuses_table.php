@@ -15,6 +15,7 @@ return new class extends Migration
             $table->id();
             $table->foreignId('warehouse_master_site_id')->constrained('warehouse_master_sites')->onDelete('cascade');
             $table->foreignId('category_id')->constrained()->onDelete('cascade');
+            $table->foreignId('subcategory_id')->nullable()->constrained()->onDelete('set null');
             
             $table->string('asset_code')->nullable();
             $table->string('brand')->nullable();
