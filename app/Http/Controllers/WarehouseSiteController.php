@@ -8,7 +8,6 @@ use DataTables;
 
 class WarehouseSiteController extends Controller
 {
-
     public function siteHome()
     {
         return view('master.site');
@@ -17,20 +16,67 @@ class WarehouseSiteController extends Controller
     public function getSiteData(Request $request)
     {
         if ($request->ajax()) {
-            $data = WarehouseMasterSite::select('id', 'kode', 'nama_lokasi', 'alamat')->get();
-
+            $query = WarehouseMasterSite::select('id', 'kode', 'nama_lokasi', 'alamat');
+            
+            // Apply filters if they exist
+            if ($request->has('kode') && !empty($request->kode)) {
+                // Handle multiple selections
+                $query->whereIn('kode', $request->kode);
+            }
+            
+            if ($request->has('nama_lokasi') && !empty($request->nama_lokasi)) {
+                // Handle multiple selections
+                $query->whereIn('nama_lokasi', $request->nama_lokasi);
+            }
+            
+            if ($request->has('alamat') && !empty($request->alamat)) {
+                // Handle multiple selections
+                $query->whereIn('alamat', $request->alamat);
+            }
+            
+            $data = $query->get();
+    
             return response()->json([
                 'data' => $data
             ]);
         }
-
+    
         return abort(404);
     }
     
-    public function exportExcel()
+    public function exportExcel(Request $request)
     {
-        $sites = WarehouseMasterSite::all();
-        return response()->json($sites);
+        // Apply the same filters as in the DataTable for consistency
+        $query = WarehouseMasterSite::select('id', 'kode', 'nama_lokasi', 'alamat');
+        
+        if ($request->has('kode') && !empty($request->kode)) {
+            $query->where('kode', 'like', '%' . $request->kode . '%');
+        }
+        
+        if ($request->has('nama_lokasi') && !empty($request->nama_lokasi)) {
+            $query->where('nama_lokasi', 'like', '%' . $request->nama_lokasi . '%');
+        }
+        
+        if ($request->has('alamat') && !empty($request->alamat)) {
+            $query->where('alamat', 'like', '%' . $request->alamat . '%');
+        }
+        
+        $sites = $query->get();
+        
+        // Format the data for Excel export
+        $exportData = [];
+        $no = 1;
+        
+        foreach ($sites as $site) {
+            $exportData[] = [
+                'No' => $no++,
+                'Kode Warehouse' => $site->kode,
+                'Nama Lokasi' => $site->nama_lokasi,
+                'Alamat' => $site->alamat
+            ];
+        }
+        
+        return response()->json($exportData);
     }
     
     public function store(Request $request)
