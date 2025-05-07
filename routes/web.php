@@ -72,7 +72,16 @@ Route::middleware('auth')->group(function () {
 
 
     // sub category
-    Route::get('/sub/category', [subcategoryController::class, 'subcategoryHome'])->name('subCategory.index');
+    Route::get('/subcategories', [SubcategoryController::class, 'subcategoryHome'])->name('subCategory.index');
+    Route::get('/subcategories/data', [SubcategoryController::class, 'getData'])->name('subcategory.data');
+    Route::post('/subcategories', [SubcategoryController::class, 'store'])->name('subcategory.store');
+    Route::get('/subcategories/categories/list', [SubcategoryController::class, 'getCategoryList'])->name('category.list');
+    Route::get('/subcategories/export', [SubcategoryController::class, 'export'])->name('subcategory.export');
+    Route::get('/subcategories/{id}', [SubcategoryController::class, 'show'])->name('subcategory.show');
+    Route::get('/subcategories/{id}/edit', [SubcategoryController::class, 'edit'])->name('subcategory.edit');
+    Route::put('/subcategories/{id}', [SubcategoryController::class, 'update'])->name('subcategory.update');
+    Route::delete('/subcategories/{id}', [SubcategoryController::class, 'destroy'])->name('subcategory.destroy');
+    Route::get('/categories/list', [SubcategoryController::class, 'getList'])->name('category.list');
 });
 
 // Guest area (hanya bisa diakses jika belum login)
