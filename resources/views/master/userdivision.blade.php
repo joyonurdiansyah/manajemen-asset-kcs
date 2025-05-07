@@ -412,6 +412,9 @@
                     <button type="button" class="btn btn-add" data-bs-toggle="modal" data-bs-target="#addUserModal">
                         <i class="fas fa-plus-circle"></i> Tambah Data User
                     </button>
+                    <button type="button" class="btn btn-outline-primary" id="showFilterModal">
+                        <i class="fas fa-filter"></i> Filter Data
+                    </button>
                 </div>
             </div>
             <div class="card-body">
@@ -549,6 +552,51 @@
             </div>
         </div>
     </div>
+
+    <!-- Filter Site Modal -->
+    <div class="modal fade" id="filterModal" tabindex="-1" aria-labelledby="filterModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="filterModalLabel">Filter Data</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="row">
+                        <div class="mb-3 col-md-4">
+                            <label for="Nama" class="form-label">Nama User</label>
+                            <select class="form-select filter-select" id="Nama" multiple="multiple"
+                                data-placeholder="Pilih Nama User...">
+
+                            </select>
+                        </div>
+                        <div class="mb-3 col-md-4">
+                            <label for="division_code" class="form-label">Kode Divisi</label>
+                            <select class="form-select filter-select" id="division_code" multiple="multiple"
+                                data-placeholder="Pilih Kode Divisi...">
+
+                            </select>
+                        </div>
+                        <div class="mb-3 col-md-4">
+                            <label for="division_name" class="form-label">Nama Divisi</label>
+                            <select class="form-select filter-select" id="division_name" multiple="multiple"
+                                data-placeholder="Pilih Kode Divisi...">
+
+                            </select>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" id="resetFilters">
+                        <i class="fas fa-undo"></i> Reset Filter
+                    </button>
+                    <button type="button" class="btn btn-primary" id="applyFilters" data-bs-dismiss="modal">
+                        <i class="fas fa-filter"></i> Terapkan Filter
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
 @endsection
 
 @section('scripts')
@@ -557,6 +605,9 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <script>
         $(document).ready(function() {
+            // Variabel untuk menyimpan data users
+            let users = [];
+
             // Initialize DataTable
             const userTable = $('#user-table').DataTable({
                 processing: false,
@@ -566,6 +617,7 @@
                     url: '{{ route('user.division.get') }}',
                     type: 'GET',
                     dataSrc: function(json) {
+                        users = json.users;
                         return json.users;
                     }
                 },
@@ -615,31 +667,123 @@
                         data: 'id',
                         render: function(data, type, row) {
                             return `
-                <div class="action-buttons">
-                    <button type="button" class="btn-edit" data-id="${data}" data-bs-toggle="modal" data-bs-target="#editUserModal">
-                        <i class="fas fa-edit"></i> Edit
-                    </button>
-                    <button type="button" class="btn-delete" data-id="${data}" data-bs-toggle="modal" data-bs-target="#deleteUserModal">
-                        <i class="fas fa-trash"></i> Hapus
-                    </button>
-                </div>
-            `;
+                                <div class="action-buttons">
+                                    <button type="button" class="btn-edit" data-id="${data}" data-bs-toggle="modal" data-bs-target="#editUserModal">
+                                        <i class="fas fa-edit"></i> Edit
+                                    </button>
+                                    <button type="button" class="btn-delete" data-id="${data}" data-bs-toggle="modal" data-bs-target="#deleteUserModal">
+                                        <i class="fas fa-trash"></i> Hapus
+                                    </button>
+                                </div>
+                            `;
                         },
                         title: 'Action'
                     }
                 ]
             });
 
-            // Edit User - Using AJAX to get complete user data
+            function getUniqueValues(array, key) {
+                return [...new Set(array.map(item => item[key]))];
+            }
+
+            function populateFilterOptions() {
+                if (users.length === 0) return;
+
+                const uniqueNames = getUniqueValues(users, 'name');
+                const uniqueDivisionCodes = getUniqueValues(users, 'division_code');
+                const uniqueDivisionNames = getUniqueValues(users, 'division_name');
+
+                // Mengosongkan opsi saat ini
+                $('#Nama, #division_code, #division_name').empty();
+
+                // Mengisi opsi untuk setiap select
+                uniqueNames.forEach(name => {
+                    $('#Nama').append(new Option(name, name));
+                });
+
+                uniqueDivisionCodes.forEach(code => {
+                    $('#division_code').append(new Option(code, code));
+                });
+
+                uniqueDivisionNames.forEach(name => {
+                    $('#division_name').append(new Option(name, name));
+                });
+
+                // Trigger change untuk refresh Select2
+                $('.filter-select').trigger('change');
+            }
+
+            // Inisialisasi Select2 untuk filter-select
+            $('.filter-select').select2({
+                dropdownParent: $('#filterModal'),
+                width: '100%',
+                allowClear: true,
+                closeOnSelect: false,
+                placeholder: function() {
+                    return $(this).data('placeholder');
+                }
+            });
+
+            // Tunjukkan modal filter saat tombol filter diklik
+            $('#showFilterModal').on('click', function() {
+                populateFilterOptions();
+                $('#filterModal').modal('show');
+            });
+
+            // Terapkan filter saat tombol apply diklik
+            $('#applyFilters').on('click', function() {
+                applyFilters();
+                $('#filterModal').modal('hide');
+            });
+
+            // Reset filter saat tombol reset diklik
+            $('#resetFilters').on('click', function() {
+                $('.filter-select').val(null).trigger('change');
+                userTable.search('').columns().search('').draw();
+            });
+
+            // Fungsi untuk menerapkan filter
+            function applyFilters() {
+
+                const selectedNames = $('#Nama').val() || [];
+                const selectedDivisionCodes = $('#division_code').val() || [];
+                const selectedDivisionNames = $('#division_name').val() || [];
+
+
+                $.fn.dataTable.ext.search.pop();
+
+                if (selectedNames.length > 0 || selectedEmails.length > 0 ||
+                    selectedDivisionCodes.length > 0 || selectedDivisionNames.length > 0) {
+
+                    $.fn.dataTable.ext.search.push(
+                        function(settings, searchData, dataIndex) {
+                            const rowData = userTable.row(dataIndex).data();
+
+                            const name = rowData.name;
+                            const divCode = rowData.division_code;
+                            const divName = rowData.division_name;
+
+                            const nameMatch = selectedNames.length === 0 || selectedNames.includes(name);
+                            const divCodeMatch = selectedDivisionCodes.length === 0 || selectedDivisionCodes
+                                .includes(divCode);
+                            const divNameMatch = selectedDivisionNames.length === 0 || selectedDivisionNames
+                                .includes(divName);
+
+                            return nameMatch && divCodeMatch && divNameMatch;
+                        }
+                    );
+                }
+
+                userTable.draw();
+            }
+
             $('#user-table').on('click', '.btn-edit', function() {
                 const userId = $(this).data('id');
 
-                // Show loading indicator
                 $('#editUserModal .modal-content').append(
                     '<div class="modal-overlay"><div class="spinner-border text-primary" role="status"><span class="visually-hidden">Loading...</span></div></div>'
-                    );
+                );
 
-                // Fetch user data via AJAX
                 $.ajax({
                     url: "{{ url('user-division') }}/" + userId + "/edit",
                     type: "GET",
@@ -647,15 +791,13 @@
                         if (response.status === 'success') {
                             const user = response.user;
 
-                            // Fill form fields with user data
                             $('#edit_name').val(user.name);
                             $('#edit_email').val(user.email);
-                            $('#edit_password').val(''); // Clear password field
+                            $('#edit_password').val(''); 
                             $('#edit_division_id').val(user.division_id);
                             $('#editUserForm').attr('action',
                                 `{{ url('user-division') }}/${userId}`);
 
-                            // Remove loading indicator
                             $('.modal-overlay').remove();
                         } else {
                             showNotification('error', 'Failed to load user data');
@@ -679,30 +821,26 @@
                 $('#deleteUserForm').attr('action', `{{ url('user-division') }}/${userId}`);
             });
 
-            // Export to Excel
             $('#exportExcel').click(function() {
-                const data = userTable.data().toArray();
-
-                // Create workbook and worksheet
-                const wb = XLSX.utils.book_new();
-
-                // Convert data to appropriate format for XLSX
-                const wsData = data.map((row, index) => {
-                    return {
-                        'No': index + 1,
-                        'Nama': row.name,
-                        'Email': row.email,
-                        'Kode Divisi': row.division_code,
-                        'Nama Divisi': row.division_name
-                    };
+                const visibleData = [];
+                userTable.rows({
+                    search: 'applied'
+                }).every(function(rowIdx, tableLoop, rowLoop) {
+                    const data = this.data();
+                    visibleData.push({
+                        'No': rowIdx + 1,
+                        'Nama': data.name,
+                        'Email': data.email,
+                        'Kode Divisi': data.division_code,
+                        'Nama Divisi': data.division_name
+                    });
                 });
 
-                const ws = XLSX.utils.json_to_sheet(wsData);
+                const wb = XLSX.utils.book_new();
+                const ws = XLSX.utils.json_to_sheet(visibleData);
 
-                // Add worksheet to workbook
                 XLSX.utils.book_append_sheet(wb, ws, 'Users');
 
-                // Generate Excel file
                 const now = new Date();
                 const dateStr = now.toISOString().split('T')[0];
                 const fileName = `user_division_data_${dateStr}.xlsx`;
@@ -710,7 +848,6 @@
                 XLSX.writeFile(wb, fileName);
             });
 
-            // Form validation for Add User
             $('#addUserForm').submit(function(e) {
                 e.preventDefault();
 
@@ -752,8 +889,6 @@
                 });
             });
 
-
-            // Form validation for Edit User
             $('#editUserForm').submit(function(e) {
                 e.preventDefault();
 
@@ -797,7 +932,6 @@
                 });
             });
 
-            // Delete User Form Submit
             $('#deleteUserForm').submit(function(e) {
                 e.preventDefault();
 
@@ -825,13 +959,12 @@
                 });
             });
 
-            // Auto-close alerts after 5 seconds
             setTimeout(function() {
                 $('.alert').alert('close');
             }, 5000);
 
-            // Reset form fields when modal is closed
-            $('#addUserModal, #editUserModal').on('hidden.bs.modal', function() {
+
+            $('#addUserModal, #editUserModal, #filterModal').on('hidden.bs.modal', function() {
                 $(this).find('form')[0].reset();
                 $(this).find('.is-invalid').removeClass('is-invalid');
             });
