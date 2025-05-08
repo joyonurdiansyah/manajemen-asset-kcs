@@ -493,6 +493,49 @@
             </div>
         </div>
     </div>
+
+    <!-- Modal Detail Asset Status -->
+    <div class="modal fade" id="detailModal" tabindex="-1" aria-labelledby="detailModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="detailModalLabel">Detail Kategori: <span id="categoryName"></span></h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="table-responsive">
+                        <table id="asset-status-table" class="table table-striped table-bordered">
+                            <thead>
+                                <tr>
+                                    <th>No</th>
+                                    <th>Kode Asset</th>
+                                    <th>Brand</th>
+                                    <th>Serial Number</th>
+                                    <th>Subkategori</th>
+                                    <th>Tanggal Visit</th>
+                                    <th>Status Barang</th>
+                                </tr>
+                            </thead>
+                            <tbody id="asset-status-body">
+                                <!-- Data akan dimuat di sini -->
+                            </tbody>
+                        </table>
+                    </div>
+                    <div id="no-data-message" class="p-3 text-center d-none">
+                        <p>Tidak ada data asset status untuk kategori ini.</p>
+                    </div>
+                    <div id="loading-indicator" class="p-3 text-center">
+                        <div class="spinner-border text-primary" role="status">
+                            <span class="visually-hidden">Loading...</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Tutup</button>
+                </div>
+            </div>
+        </div>
+    </div>
 @endsection
 
 @section('scripts')
@@ -543,6 +586,9 @@
                         render: function(data, type, row) {
                             return `
                         <div class="action-buttons">
+                            <button type="button" class="text-white btn-detail btn btn-info" data-id="${data}" data-name="${row.name}">
+                                        <i class="fas fa-info-circle"></i> Detail
+                                    </button>
                             <button type="button" class="btn-edit" data-id="${row.id}" data-name="${row.name}">
                                 <i class="fas fa-edit"></i> Edit
                             </button>
@@ -556,8 +602,6 @@
                     }
                 ]
             });
-
-            // Function to display notifications (removed since we're using showNotification)
 
             // Add Category Form Submission
             $('#add-category-form').on('submit', function(e) {
@@ -695,9 +739,138 @@
                 });
             });
 
-            // Function to export data to Excel
+            $(document).on('click', '.btn-detail', function() {
+            const categoryId = $(this).data('id');
+            const categoryName = $(this).data('name');
+            
+            $('#categoryName').text(categoryName);
+            
+            $('#loading-indicator').removeClass('d-none');
+            $('#no-data-message').addClass('d-none');
+            $('#asset-status-body').empty();
+            
+            // Tampilkan modal
+            $('#detailModal').modal('show');
+            
+            $.ajax({
+                url: `/category-data/${categoryId}/asset-status`,
+                type: 'GET',
+                dataType: 'json',
+                success: function(response) {
+
+                    $('#loading-indicator').addClass('d-none');
+                    
+                    if (response.success) {
+                        const assetStatuses = response.data.asset_statuses;
+                        
+                        if (assetStatuses.length > 0) {
+  
+                            let html = '';
+                            
+                            assetStatuses.forEach((item, index) => {
+                                html += `
+                                    <tr>
+                                        <td>${index + 1}</td>
+                                        <td>${item.asset_code || '-'}</td>
+                                        <td>${item.brand || '-'}</td>
+                                        <td>${item.serial_number || '-'}</td>
+                                        <td>${item.subcategory}</td>
+                                        <td>${item.tanggal_visit}</td>
+                                        <td>
+                                            <span class="badge bg-${getStatusBadgeColor(item.status_barang)}">
+                                                ${item.status_barang}
+                                            </span>
+                                        </td>
+                                    </tr>
+                                `;
+                            });
+                            
+                            $('#asset-status-body').html(html);
+                            
+                            if (!$.fn.DataTable.isDataTable('#asset-status-table')) {
+                                $('#asset-status-table').DataTable({
+                                    responsive: true,
+                                    pageLength: 5,
+                                    lengthMenu: [[5, 10, 25, 50, -1], [5, 10, 25, 50, "Semua"]],
+                                    language: {
+                                        search: "<span class='me-2'>Cari:</span> _INPUT_",
+                                        searchPlaceholder: "Cari data...",
+                                        lengthMenu: "Tampilkan _MENU_ entri",
+                                        info: "Menampilkan _START_ sampai _END_ dari _TOTAL_ entri",
+                                        infoEmpty: "Menampilkan 0 sampai 0 dari 0 entri",
+                                        infoFiltered: "(disaring dari _MAX_ total entri)",
+                                        paginate: {
+                                            first: "Pertama",
+                                            last: "Terakhir",
+                                            next: "Selanjutnya",
+                                            previous: "Sebelumnya"
+                                        }
+                                    }
+                                });
+                            } else {
+
+                                $('#asset-status-table').DataTable().destroy();
+                                $('#asset-status-table').DataTable({
+                                    responsive: true,
+                                    pageLength: 5,
+                                    lengthMenu: [[5, 10, 25, 50, -1], [5, 10, 25, 50, "Semua"]],
+                                    language: {
+                                        search: "<span class='me-2'>Cari:</span> _INPUT_",
+                                        searchPlaceholder: "Cari data...",
+                                        lengthMenu: "Tampilkan _MENU_ entri",
+                                        info: "Menampilkan _START_ sampai _END_ dari _TOTAL_ entri",
+                                        infoEmpty: "Menampilkan 0 sampai 0 dari 0 entri",
+                                        infoFiltered: "(disaring dari _MAX_ total entri)",
+                                        paginate: {
+                                            first: "Pertama",
+                                            last: "Terakhir",
+                                            next: "Selanjutnya",
+                                            previous: "Sebelumnya"
+                                        }
+                                    }
+                                });
+                            }
+                        } else {
+
+                            $('#no-data-message').removeClass('d-none');
+                        }
+                    } else {
+
+                        $('#no-data-message').removeClass('d-none')
+                            .html(`<div class="alert alert-danger">Gagal memuat data: ${response.message}</div>`);
+                    }
+                },
+                error: function(xhr, status, error) {
+
+                    $('#loading-indicator').addClass('d-none');
+                    $('#no-data-message').removeClass('d-none')
+                        .html(`<div class="alert alert-danger">Error: ${error}</div>`);
+                }
+            });
+        });
+
+        function getStatusBadgeColor(status) {
+            switch (status.toLowerCase()) {
+                case 'oke':
+                    return 'success';
+                case 'rusak':
+                    return 'danger';
+                case 'perbaikan':
+                    return 'warning';
+                default:
+                    return 'secondary';
+            }
+        }
+
+        $('#detailModal').on('hidden.bs.modal', function() {
+            if ($.fn.DataTable.isDataTable('#asset-status-table')) {
+                $('#asset-status-table').DataTable().destroy();
+            }
+            $('#asset-status-body').empty();
+        });
+
+
             function exportToExcel(data) {
-                // Prepare data for export
                 const exportData = data.map((item, index) => {
                     return {
                         'No': index + 1,
@@ -705,10 +878,9 @@
                     };
                 });
 
-                // Create worksheet
                 const worksheet = XLSX.utils.json_to_sheet(exportData);
 
-                // Set column widths
+                // Set column nih
                 const colWidths = [{
                         wch: 5
                     }, // No

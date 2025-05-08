@@ -69,6 +69,7 @@ Route::middleware('auth')->group(function () {
     Route::get('/category-data/{id}', [CategoryController::class, 'categoryShow'])->name('category.show');
     Route::patch('/category-data/update/{id}', [CategoryController::class, 'categoryUpdate'])->name('category.update');
     Route::delete('/category-data/delete/{id}', [CategoryController::class, 'categoryDestroy'])->name('category.destroy');
+    Route::get('/category-data/{id}/asset-status', [CategoryController::class, 'getCategoryAssetStatus'])->name('category.asset-status');
 
     // permission
     Route::get('/permissions', [PermissionController::class, 'permissionHome'])->name('role.permissions.index');
