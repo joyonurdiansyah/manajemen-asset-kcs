@@ -229,6 +229,9 @@
                     <button type="button" class="btn btn-add" id="addAssetBtn">
                         <i class="fas fa-plus-circle"></i> Tambah Data Asset IT
                     </button>
+                    <button type="button" class="gap-2 btn btn-success d-flex align-items-center" id="importBtn" data-bs-toggle="modal" data-bs-target="#importAssetModal">
+                        <i class="fas fa-file-import"></i> <span>Import Excel</span>
+                    </button>
                 </div>
             </div>
             <div class="card-body">
@@ -542,6 +545,45 @@
         </div>
     </div>
 
+    <!-- Import Excel Modal -->
+    <div class="modal fade" id="importAssetModal" tabindex="-1" aria-labelledby="importAssetModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered modal-md">
+            <div class="shadow-lg modal-content rounded-4">
+                <div class="text-white modal-header bg-primary rounded-top-4">
+                    <h5 class="modal-title" id="importAssetModalLabel"><i class="fas fa-upload me-2"></i>Import Data Asset IT</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="importAssetForm" enctype="multipart/form-data">
+                        @csrf
+                        <div class="mb-4">
+                            <label for="excel_file" class="form-label fw-semibold">Pilih File Excel (.xlsx)</label>
+                            <input type="file" class="form-control" id="excel_file" name="excel_file" accept=".xlsx" required>
+                        </div>
+                        <div class="mb-4">
+                            <p class="fw-bold">Catatan:</p>
+                            <ul class="small text-muted ps-3">
+                                <li>Format yang diterima adalah <code>.xlsx</code></li>
+                                <li>Pastikan data lokasi awal, lokasi tujuan, kategori, dan subkategori sudah ada di sistem</li>
+                                <li>Penulisan lokasi dibuat berdasarkan kode warehouse site, contoh <strong>cikarang</strong> gunakan <strong>111</strong></li>
+                                <li>Jika subkategori tidak ditemukan, data akan tetap disimpan dengan subkategori kosong</li>
+                            </ul>
+                            <a href="{{ route('assets.import.template') }}" class="btn btn-outline-secondary btn-sm">
+                                <i class="fas fa-download me-1"></i> Download Template
+                            </a>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer bg-light rounded-bottom-4">
+                    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Batal</button>
+                    <button type="submit" form="importAssetForm" class="btn btn-primary" id="confirmImport">
+                        <i class="fas fa-check-circle me-1"></i> Import
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- Alert Modal -->
     <div class="modal fade" id="alertModal" tabindex="-1" aria-labelledby="alertModalLabel" aria-hidden="true">
         <div class="modal-dialog">
@@ -719,6 +761,89 @@
             $('#addAssetBtn').on('click', function() {
                 $('#addAssetForm')[0].reset();
                 $('#addAssetModal').modal('show');
+            });
+
+            //import excel_file
+
+            // Show Import Modal
+            $('#importBtn').on('click', function() {
+                $('#importAssetForm')[0].reset();
+                $('#importAssetModal').modal('show');
+            });
+
+            // Handle Import Form Submit
+            $('#confirmImport').on('click', function() {
+                // Create a FormData object
+                const formData = new FormData($('#importAssetForm')[0]);
+
+                // Show loading indicator
+                $(this).html(
+                    '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Importing...'
+                    );
+                $(this).prop('disabled', true);
+
+                $.ajax({
+                    url: "{{ route('assets.import') }}",
+                    method: 'POST',
+                    data: formData,
+                    processData: false,
+                    contentType: false,
+                    success: function(response) {
+                        $('#importAssetModal').modal('hide');
+                        assetsTable.ajax.reload();
+
+                        let message = `
+                <div class="alert alert-success">
+                    <p><strong>Import berhasil!</strong></p>
+                    <p>Data yang berhasil diimport: ${response.success} baris</p>
+                `;
+
+                        if (response.errors && response.errors.length > 0) {
+                            message +=
+                                `<p>Ada ${response.errors.length} baris yang tidak dapat diimport:</p><ul>`;
+                            response.errors.forEach(function(error) {
+                                message +=
+                                    `<li>Baris ${error.row}: ${error.message}</li>`;
+                            });
+                            message += `</ul>`;
+                        }
+
+                        message += `</div>`;
+
+                        $('#alertMessage').html(message);
+                        $('#alertModal').modal('show');
+
+                        // Reset button
+                        $('#confirmImport').html('Import');
+                        $('#confirmImport').prop('disabled', false);
+                    },
+                    error: function(xhr) {
+                        let errorMessage = 'Terjadi kesalahan saat mengimport data.';
+
+                        if (xhr.responseJSON && xhr.responseJSON.message) {
+                            errorMessage = xhr.responseJSON.message;
+                        }
+
+                        if (xhr.responseJSON && xhr.responseJSON.errors) {
+                            errorMessage = '<ul>';
+                            $.each(xhr.responseJSON.errors, function(key, value) {
+                                errorMessage += `<li>${value}</li>`;
+                            });
+                            errorMessage += '</ul>';
+                        }
+
+                        $('#alertMessage').html(`
+                <div class="alert alert-danger">
+                    ${errorMessage}
+                </div>
+            `);
+                        $('#alertModal').modal('show');
+
+                        // Reset button
+                        $('#confirmImport').html('Import');
+                        $('#confirmImport').prop('disabled', false);
+                    }
+                });
             });
 
             // Load subcategories for add form

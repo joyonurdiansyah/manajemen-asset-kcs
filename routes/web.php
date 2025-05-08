@@ -41,6 +41,8 @@ Route::middleware('auth')->group(function () {
     Route::put('/assets/update/{id}', [AssetStatusController::class, 'updateAsset'])->name('assets.update');
     Route::delete('/assets/destroy/{id}', [AssetStatusController::class, 'destroyAsset'])->name('assets.destroy');
     Route::get('/get-subcategories/{category_id}', [AssetStatusController::class, 'getSubcategories']);
+    Route::post('/assets/import', [AssetStatusController::class, 'importExcelAsset'])->name('assets.import');
+    Route::get('/assets/import-template', [AssetStatusController::class, 'downloadImportTemplate'])->name('assets.import.template');
 
     // Manage Site
     Route::get('/master-site', [WarehouseSiteController::class, 'siteHome'])->name('site.home');
