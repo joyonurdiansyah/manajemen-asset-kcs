@@ -127,4 +127,19 @@ class WarehouseSiteController extends Controller
         
         return response()->json(['success' => true, 'message' => 'Data site berhasil dihapus']);
     }
+
+    public function getAssetStatus($id)
+    {
+        $site = WarehouseMasterSite::findOrFail($id);
+        
+        // Get all asset statuses with eager loading for related data
+        $assetStatuses = $site->assetStatuses()
+            ->with(['category', 'subcategory'])
+            ->get();
+        
+        return response()->json([
+            'site' => $site,
+            'asset_statuses' => $assetStatuses
+        ]);
+    }
 }

@@ -52,6 +52,7 @@ Route::middleware('auth')->group(function () {
     Route::get('/master-site/edit/{id}', [WarehouseSiteController::class, 'edit'])->name('site.edit');
     Route::put('/master-site/update/{id}', [WarehouseSiteController::class, 'update'])->name('site.update');
     Route::delete('/master-site/destroy/{id}', [WarehouseSiteController::class, 'destroy'])->name('site.destroy');
+    Route::get('/master-site/detail/{id}', [WarehouseSiteController::class, 'getAssetStatus'])->name('site.detail');
 
     // User Divisions
     Route::get('/user-division', [DivisionUserController::class, 'userDivisionHome'])->name('user.division.home');

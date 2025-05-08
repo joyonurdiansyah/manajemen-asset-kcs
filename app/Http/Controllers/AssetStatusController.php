@@ -198,23 +198,17 @@ class AssetStatusController extends Controller
             return response()->json(['message' => 'Validation failed', 'errors' => $validator->errors()], 422);
         }
 
-        // Get the file
         $file = $request->file('excel_file');
 
-        // Read Excel file
         try {
             $spreadsheet = IOFactory::load($file);
             $worksheet = $spreadsheet->getActiveSheet();
             $rows = $worksheet->toArray();
 
-            // Remove header row
             array_shift($rows);
 
-            // Prepare data for import
             $successCount = 0;
             $errors = [];
-
-            // Load all necessary lookups to avoid multiple DB queries
             $locationsByCode = WarehouseMasterSite::pluck('id', 'kode')->toArray();
             $categoriesByName = Category::pluck('id', 'name')->toArray();
             $subcategoriesByNameAndCategory = [];
@@ -224,14 +218,11 @@ class AssetStatusController extends Controller
                 $subcategoriesByNameAndCategory[$key] = $subcategory->id;
             }
 
-            // Begin transaction
             DB::beginTransaction();
 
             try {
                 foreach ($rows as $index => $row) {
-                    $rowNumber = $index + 2; // Excel row number (considering header at row 1)
-
-                    // Skip empty rows
+                    $rowNumber = $index + 2; 
                     if (empty($row[0]) && empty($row[1]) && empty($row[2])) {
                         continue;
                     }

@@ -408,8 +408,8 @@
                                 <th width="5%">No</th>
                                 <th width="15%">Kode Warehouse</th>
                                 <th width="25%">Nama Lokasi</th>
-                                <th width="40%">Alamat</th>
-                                <th width="15%">Action</th>
+                                <th width="30%">Alamat</th>
+                                <th width="25%">Action</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -564,6 +564,45 @@
             </div>
         </div>
     </div>
+
+    <!-- Detail Site Modal -->
+    <div class="modal fade" id="detailSiteModal" tabindex="-1" aria-labelledby="detailSiteModalLabel"
+        aria-hidden="true">
+        <div class="modal-dialog modal-xl">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="detailSiteModalLabel">Detail Asset Status - <span
+                            id="detail_site_name"></span></h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="table-responsive">
+                        <table id="assetStatusTable" class="table table-bordered table-striped">
+                            <thead>
+                                <tr>
+                                    <th>No</th>
+                                    <th>Asset Code</th>
+                                    <th>Category</th>
+                                    <th>Subcategory</th>
+                                    <th>Brand</th>
+                                    <th>Serial Number</th>
+                                    <th>Tanggal Visit</th>
+                                    <th>Status Barang</th>
+                                    <th>Notes</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <!-- data render ke sini -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Tutup</button>
+                </div>
+            </div>
+        </div>
+    </div>
 @endsection
 
 @section('scripts')
@@ -641,15 +680,18 @@
                         data: 'id',
                         render: function(data, type, row) {
                             return `
-                        <div class="action-buttons">
-                            <button type="button" class="btn-edit" data-id="${data}">
-                                <i class="fas fa-edit"></i> Edit
-                            </button>
-                            <button type="button" class="btn-delete" data-id="${data}" data-name="${row.nama_lokasi}">
-                                <i class="fas fa-trash"></i> Hapus
-                            </button>
-                        </div>
-                    `;
+                                <div class="action-buttons">
+                                    <button type="button" class="text-white btn-detail btn btn-info" data-id="${data}" data-name="${row.nama_lokasi}">
+                                        <i class="fas fa-info-circle"></i> Detail
+                                    </button>
+                                    <button type="button" class="btn-edit" data-id="${data}">
+                                        <i class="fas fa-edit"></i> Edit
+                                    </button>
+                                    <button type="button" class="btn-delete" data-id="${data}" data-name="${row.nama_lokasi}">
+                                        <i class="fas fa-trash"></i> Hapus
+                                    </button>
+                                </div>
+                            `;
                         }
                     }
                 ]
@@ -807,6 +849,84 @@
                     }
                 });
             });
+
+
+            // Show Detail Modal when Detail button is clicked
+            $(document).on('click', '.btn-detail', function() {
+                var id = $(this).data('id');
+                var name = $(this).data('name');
+
+                // Set site name in modal header
+                $('#detail_site_name').text(name);
+
+                // Clear previous data
+                $('#assetStatusTable tbody').empty();
+                $('#assetStatusTable tbody').html(
+                    '<tr><td colspan="8" class="text-center">Loading data...</td></tr>');
+
+                // Show modal
+                $('#detailSiteModal').modal('show');
+
+                // Get related asset status data
+                $.ajax({
+                    type: 'GET',
+                    url: '{{ url('master-site/detail') }}/' + id,
+                    success: function(response) {
+                        // Clear loading state
+                        $('#assetStatusTable tbody').empty();
+
+                        if (response.asset_statuses.length > 0) {
+                            // Populate table with data
+                            $.each(response.asset_statuses, function(index, item) {
+                                var statusClass = '';
+                                if (item.status_barang === 'oke') {
+                                    statusClass = 'badge bg-success';
+                                } else if (item.status_barang === 'rusak') {
+                                    statusClass = 'badge bg-danger';
+                                } else if (item.status_barang === 'perbaikan') {
+                                    statusClass = 'badge bg-warning';
+                                }
+
+                                var row = `
+                            <tr>
+                                <td>${index + 1}</td>
+                                <td>${item.asset_code || '-'}</td>
+                                <td>${item.category ? item.category.name : '-'}</td>
+                                <td>${item.subcategory ? item.subcategory.name : '-'}</td>
+                                <td>${item.brand || '-'}</td>
+                                <td>${item.serial_number || '-'}</td>
+                                <td>${item.tanggal_visit ? formatDate(item.tanggal_visit) : '-'}</td>
+                                <td><span class="${statusClass}">${item.status_barang}</span></td>
+                                <td>${item.notes || '-'}</td>
+                            </tr>
+                        `;
+                                $('#assetStatusTable tbody').append(row);
+                            });
+                        } else {
+                            // No data found
+                            $('#assetStatusTable tbody').html(
+                                '<tr><td colspan="8" class="text-center">Tidak ada data asset status</td></tr>'
+                            );
+                        }
+                    },
+                    error: function() {
+                        $('#assetStatusTable tbody').html(
+                            '<tr><td colspan="8" class="text-center">Gagal memuat data</td></tr>'
+                        );
+                        showNotification('error', 'Gagal mengambil data asset status.');
+                    }
+                });
+            });
+
+            // Format date helper function
+            function formatDate(dateString) {
+                const date = new Date(dateString);
+                return date.toLocaleDateString('id-ID', {
+                    day: '2-digit',
+                    month: '2-digit',
+                    year: 'numeric'
+                });
+            }
 
             // Show Edit Site Modal when Edit button is clicked
             $(document).on('click', '.btn-edit', function() {
