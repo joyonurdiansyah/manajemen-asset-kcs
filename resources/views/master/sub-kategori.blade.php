@@ -419,6 +419,8 @@
         </div>
     </div>
 
+    <div class="toast-container"></div>
+
     <!-- Add/Edit Modal -->
     <div class="modal fade" id="subcategoryModal" tabindex="-1" aria-labelledby="subcategoryModalLabel" aria-hidden="true">
         <div class="modal-dialog">
@@ -564,7 +566,8 @@
                     },
                     {
                         data: 'category_code',
-                        name: 'category_code'
+                        name: 'category_code',
+                        visible: false
                     },
                     {
                         data: 'category_name',
@@ -584,6 +587,34 @@
                 ],
             });
 
+            // Show Notification Function
+            function showNotification(type, message) {
+                var iconClass = type === 'success' ? 'fas fa-check-circle text-success' :
+                    'fas fa-exclamation-circle text-danger';
+                var bgClass = type === 'success' ? 'bg-success-light' : 'bg-danger-light';
+
+                var toast = `
+            <div class="toast ${bgClass}" role="alert" aria-live="assertive" aria-atomic="true" data-bs-delay="5000">
+                <div class="toast-header">
+                    <i class="${iconClass} me-2"></i>
+                    <strong class="me-auto">${type === 'success' ? 'Sukses' : 'Error'}</strong>
+                    <button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="Close"></button>
+                </div>
+                <div class="toast-body">
+                    ${message}
+                </div>
+            </div>
+        `;
+
+                $('.toast-container').append(toast);
+                $('.toast').toast('show');
+
+                // Remove toast after it's hidden
+                $('.toast').on('hidden.bs.toast', function() {
+                    $(this).remove();
+                });
+            }
+
             // Load Categories for Select
             function loadCategories() {
                 $.ajax({
@@ -600,7 +631,7 @@
                         $('#category_id').html(options);
                     },
                     error: function() {
-                        toastr.error('Gagal memuat data kategori');
+                        showNotification('error', 'Gagal memuat data kategori');
                     }
                 });
             }
@@ -612,7 +643,7 @@
                 $('#subcategory_id').val('');
                 $('.invalid-feedback').text('');
                 $('.form-control, .form-select').removeClass('is-invalid');
-                loadCategories(); 
+                loadCategories();
                 $('#subcategoryModal').modal('show');
             });
 
@@ -640,7 +671,7 @@
                         if (response.success) {
                             $('#subcategoryModal').modal('hide');
                             table.ajax.reload();
-                            toastr.success(response.message);
+                            showNotification('success', response.message);
                         }
                     },
                     error: function(xhr) {
@@ -651,7 +682,7 @@
                                 $('#' + key).addClass('is-invalid');
                             });
                         } else {
-                            toastr.error('Terjadi kesalahan. Silakan coba lagi.');
+                            showNotification('error', 'Terjadi kesalahan. Silakan coba lagi.');
                         }
                     }
                 });
@@ -680,7 +711,7 @@
                         $('#subcategoryModal').modal('show');
                     },
                     error: function() {
-                        toastr.error('Terjadi kesalahan. Silakan coba lagi.');
+                        showNotification('error', 'Terjadi kesalahan. Silakan coba lagi.');
                     }
                 });
             });
@@ -703,15 +734,15 @@
                         if (response.success) {
                             $('#deleteModal').modal('hide');
                             table.ajax.reload();
-                            toastr.success(response.message);
+                            showNotification('success', response.message);
                         }
                     },
                     error: function(xhr) {
                         if (xhr.status === 422) {
                             $('#deleteModal').modal('hide');
-                            toastr.error(xhr.responseJSON.message);
+                            showNotification('error', xhr.responseJSON.message);
                         } else {
-                            toastr.error('Terjadi kesalahan. Silakan coba lagi.');
+                            showNotification('error', 'Terjadi kesalahan. Silakan coba lagi.');
                         }
                     }
                 });
@@ -734,26 +765,26 @@
                         if (response.asset_statuses && response.asset_statuses.length > 0) {
                             $.each(response.asset_statuses, function(index, status) {
                                 assetStatusHtml += `
-                        <tr>
-                            <td>${index + 1}</td>
-                            <td>${status.name}</td>
-                            <td>${status.description || '-'}</td>
-                        </tr>
-                    `;
+                <tr>
+                    <td>${index + 1}</td>
+                    <td>${status.name}</td>
+                    <td>${status.description || '-'}</td>
+                </tr>
+            `;
                             });
                         } else {
                             assetStatusHtml = `
-                    <tr>
-                        <td colspan="3" class="text-center">Tidak ada data status aset terkait</td>
-                    </tr>
-                `;
+            <tr>
+                <td colspan="3" class="text-center">Tidak ada data status aset terkait</td>
+            </tr>
+        `;
                         }
 
                         $('#asset_status_data').html(assetStatusHtml);
                         $('#detailModal').modal('show');
                     },
                     error: function() {
-                        toastr.error('Terjadi kesalahan. Silakan coba lagi.');
+                        showNotification('error', 'Terjadi kesalahan. Silakan coba lagi.');
                     }
                 });
             });
@@ -768,11 +799,11 @@
                         if (response.success && response.data && response.data.length > 0) {
                             exportToExcel(response.data);
                         } else {
-                            toastr.warning('Tidak ada data untuk diekspor.');
+                            showNotification('error', 'Tidak ada data untuk diekspor.');
                         }
                     },
                     error: function() {
-                        toastr.error('Terjadi kesalahan saat mengekspor data.');
+                        showNotification('error', 'Terjadi kesalahan saat mengekspor data.');
                     }
                 });
             });

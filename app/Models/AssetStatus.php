@@ -28,4 +28,14 @@ class AssetStatus extends Model
     {
         return $this->belongsTo(Subcategory::class);
     }
+
+    public function lokasiAwal()
+    {
+        return $this->belongsTo(WarehouseMasterSite::class, 'lokasi_awal_id');
+    }
+    
+    public function lokasiTujuan()
+    {
+        return $this->belongsTo(WarehouseMasterSite::class, 'lokasi_tujuan_id');
+    }
 }

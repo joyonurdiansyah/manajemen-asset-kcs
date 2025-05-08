@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\AssetStatus;
 use App\Models\Category;
+use App\Models\Subcategory;
 use App\Models\WarehouseMasterSite;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
@@ -19,13 +20,13 @@ class AssetStatusController extends Controller
 
     public function assetData()
     {
-        $assets = AssetStatus::all();
+        $assets = AssetStatus::with(['warehouseMasterSite', 'category', 'lokasiAwal', 'lokasiTujuan', 'subcategory'])->get();
         return response()->json(['data' => $assets]);
     }
 
     public function exportExcelAsset()
     {
-        $assets = AssetStatus::with(['warehouseMasterSite', 'category'])->get();
+        $assets = AssetStatus::with(['warehouseMasterSite', 'category', 'lokasiAwal', 'lokasiTujuan', 'subcategory'])->get();
         
         $data = [];
         
@@ -37,12 +38,12 @@ class AssetStatusController extends Controller
             'Serial Number',
             'Lokasi Awal',
             'Lokasi Tujuan',
-            'Type Barang',
+            'Kategori',
+            'Subkategori',
             'Tanggal Kunjungan',
             'Status Barang',
             'Notes',
             'Warehouse',
-            'Category',
             'Dibuat Tanggal'
         ];
         
@@ -53,14 +54,14 @@ class AssetStatusController extends Controller
                 $asset->asset_code,
                 $asset->brand,
                 $asset->serial_number,
-                $asset->lokasi_awal,
-                $asset->lokasi_tujuan,
-                $asset->type,
+                $asset->lokasiAwal ? $asset->lokasiAwal->nama_lokasi : '',
+                $asset->lokasiTujuan ? $asset->lokasiTujuan->nama_lokasi : '',
+                $asset->category ? $asset->category->name : '',
+                $asset->subcategory ? $asset->subcategory->name : '',
                 $asset->tanggal_visit ? date('Y-m-d', strtotime($asset->tanggal_visit)) : '',
                 ucfirst($asset->status_barang),
                 $asset->notes,
-                $asset->warehouseMasterSite ? $asset->warehouseMasterSite->name : '',
-                $asset->category ? $asset->category->name : '',
+                $asset->warehouseMasterSite ? $asset->warehouseMasterSite->nama_lokasi : '',
                 date('Y-m-d H:i', strtotime($asset->created_at))
             ];
         }
@@ -115,27 +116,31 @@ class AssetStatusController extends Controller
         $validator = Validator::make($request->all(), [
             'warehouse_master_site_id' => 'required|exists:warehouse_master_sites,id',
             'category_id' => 'required|exists:categories,id',
+            'subcategory_id' => 'nullable|exists:subcategories,id',
             'asset_code' => 'required|string|max:255',
             'brand' => 'required|string|max:255',
-            'tipe' => 'nullable|string|max:255',
             'serial_number' => 'nullable|string|max:255',
-            'lokasi_awal' => 'nullable|string|max:255',
-            'lokasi_tujuan' => 'nullable|string|max:255',
-            'type' => 'nullable|string|max:255',
+            'lokasi_awal_id' => 'required|exists:warehouse_master_sites,id',
+            'lokasi_tujuan_id' => 'nullable|exists:warehouse_master_sites,id',
             'tanggal_visit' => 'nullable|date',
             'status_barang' => 'required|in:oke,rusak,perbaikan',
             'notes' => 'nullable|string',
         ]);
-
+    
         if ($validator->fails()) {
             return response()->json([
                 'status' => false,
                 'errors' => $validator->errors()
             ], 422);
         }
-
+    
+        // Ensure warehouse_master_site_id is set from lokasi_awal_id
+        if (empty($request->warehouse_master_site_id) && !empty($request->lokasi_awal_id)) {
+            $request->merge(['warehouse_master_site_id' => $request->lokasi_awal_id]);
+        }
+    
         $asset = AssetStatus::create($request->all());
-
+    
         return response()->json([
             'status' => true,
             'message' => 'Asset created successfully',
@@ -164,13 +169,12 @@ class AssetStatusController extends Controller
         $validator = Validator::make($request->all(), [
             'warehouse_master_site_id' => 'required|exists:warehouse_master_sites,id',
             'category_id' => 'required|exists:categories,id',
+            'subcategory_id' => 'nullable|exists:subcategories,id',
             'asset_code' => 'required|string|max:255',
             'brand' => 'required|string|max:255',
-            'tipe' => 'nullable|string|max:255',
             'serial_number' => 'nullable|string|max:255',
-            'lokasi_awal' => 'nullable|string|max:255',
-            'lokasi_tujuan' => 'nullable|string|max:255',
-            'type' => 'nullable|string|max:255',
+            'lokasi_awal_id' => 'nullable|exists:warehouse_master_sites,id',
+            'lokasi_tujuan_id' => 'nullable|exists:warehouse_master_sites,id',
             'tanggal_visit' => 'nullable|date',
             'status_barang' => 'required|in:oke,rusak,perbaikan',
             'notes' => 'nullable|string',
@@ -205,5 +209,14 @@ class AssetStatusController extends Controller
             'status' => true,
             'message' => 'Asset deleted successfully'
         ]);
+    }
+    
+    /**
+     * Get subcategories based on category
+     */
+    public function getSubcategories($category_id)
+    {
+        $subcategories = Subcategory::where('category_id', $category_id)->get();
+        return response()->json($subcategories);
     }
 }

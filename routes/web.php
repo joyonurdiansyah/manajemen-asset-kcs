@@ -40,6 +40,7 @@ Route::middleware('auth')->group(function () {
     Route::get('/assets/edit/{id}', [AssetStatusController::class, 'editAsset'])->name('assets.edit');
     Route::put('/assets/update/{id}', [AssetStatusController::class, 'updateAsset'])->name('assets.update');
     Route::delete('/assets/destroy/{id}', [AssetStatusController::class, 'destroyAsset'])->name('assets.destroy');
+    Route::get('/get-subcategories/{category_id}', [AssetStatusController::class, 'getSubcategories']);
 
     // Manage Site
     Route::get('/master-site', [WarehouseSiteController::class, 'siteHome'])->name('site.home');

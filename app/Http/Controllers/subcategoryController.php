@@ -36,34 +36,30 @@ class SubcategoryController extends Controller
     public function getData()
     {
         $subcategories = Subcategory::with('category')->get();
-
-        $data = [];
-        foreach ($subcategories as $index => $subcategory) {
-            $actionBtn = '
-                <div class="btn-group" role="group">
-                    <button type="button" class="btn btn-info btn-sm detail-btn" data-id="'.$subcategory->id.'">
-                        <i class="fas fa-eye"></i>
-                    </button>
-                    <button type="button" class="btn btn-primary btn-sm edit-btn" data-id="'.$subcategory->id.'">
-                        <i class="fas fa-edit"></i>
-                    </button>
-                    <button type="button" class="btn btn-danger btn-sm delete-btn" data-id="'.$subcategory->id.'">
-                        <i class="fas fa-trash"></i>
-                    </button>
-                </div>
-            ';
-            
-            $data[] = [
-                'DT_RowIndex' => $index + 1,
-                'category_code' => $subcategory->category->code ?? '-',
-                'category_name' => $subcategory->category->name,
-                'name' => $subcategory->name,
-                'action' => $actionBtn
-            ];
-        }
         
         return response()->json([
-            'data' => $data
+            'data' => $subcategories->map(function ($subcategory, $key) {
+                return [
+                    'DT_RowIndex' => $key + 1,
+                    'id' => $subcategory->id,
+                    'category_code' => $subcategory->category->code ?? '-',
+                    'category_name' => $subcategory->category->name,
+                    'name' => $subcategory->name,
+                    'action' => '
+                        <div class="gap-2 d-flex justify-content-center">
+                            <button type="button" class="text-white btn btn-sm btn-info detail-btn d-flex align-items-center" data-id="'.$subcategory->id.'">
+                                <i class="fas fa-eye me-1"></i> Detail
+                            </button>
+                            <button type="button" class="btn btn-sm btn-primary edit-btn d-flex align-items-center" data-id="'.$subcategory->id.'">
+                                <i class="fas fa-edit me-1"></i> Edit
+                            </button>
+                            <button type="button" class="btn btn-sm btn-danger delete-btn d-flex align-items-center" data-id="'.$subcategory->id.'">
+                                <i class="fas fa-trash-alt me-1"></i> Hapus
+                            </button>
+                        </div>
+                    '
+                ];
+            })
         ]);
     }
 

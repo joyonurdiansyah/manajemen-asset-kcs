@@ -15,18 +15,19 @@ return new class extends Migration
             $table->id();
             $table->foreignId('warehouse_master_site_id')->constrained('warehouse_master_sites')->onDelete('cascade');
             $table->foreignId('category_id')->constrained()->onDelete('cascade');
-            $table->foreignId('subcategory_id')->nullable()->constrained()->onDelete('set null');
-            
+    
             $table->string('asset_code')->nullable();
             $table->string('brand')->nullable();
-            $table->string('tipe')->nullable();
             $table->string('serial_number')->nullable();
-            $table->string('lokasi_awal')->nullable();
-            $table->string('lokasi_tujuan')->nullable();
-            $table->string('type')->nullable();
+    
+            $table->foreignId('lokasi_awal_id')->nullable()->constrained('warehouse_master_sites')->onDelete('set null');
+            $table->foreignId('lokasi_tujuan_id')->nullable()->constrained('warehouse_master_sites')->onDelete('set null');
+            $table->foreignId('subcategory_id')->nullable()->constrained()->onDelete('set null');
+
             $table->date('tanggal_visit')->nullable();
-            $table->enum('status_barang', ['oke', 'rusak', "perbaikan"])->default('oke');
+            $table->enum('status_barang', ['oke', 'rusak', 'perbaikan'])->default('oke');
             $table->text('notes')->nullable();
+    
             $table->timestamps();
         });
     }
