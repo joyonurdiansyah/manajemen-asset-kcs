@@ -118,6 +118,16 @@
                                 @endif
                             </span>
                         </li>
+                        <li>
+                            <form method="POST" action="{{ route('logout') }}" class="mb-0">
+                                @csrf
+                                <a class="dropdown-item d-flex align-items-center" href="{{ route('logout') }}"
+                                    onclick="event.preventDefault(); this.closest('form').submit();">
+                                    <i class="bi bi-box-arrow-right"></i>
+                                    <span>Sign Out</span>
+                                </a>
+                            </form>
+                        </li>
                         <!-- other menu items -->
                     </ul>
                 @endif
