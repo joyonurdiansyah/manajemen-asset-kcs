@@ -1,9 +1,10 @@
-    <!DOCTYPE html>
-    <html lang="en">
-
-    <head>
+<!DOCTYPE html>
+<html lang="en">
+<head>
     <meta charset="utf-8">
     <meta content="width=device-width, initial-scale=1.0" name="viewport">
+    <!-- Add this meta tag for CSRF protection -->
+    <meta name="csrf-token" content="{{ csrf_token() }}">
 
     <title>Login - Assetku</title>
 
@@ -26,97 +27,115 @@
 
     <!-- Template Main CSS File -->
     <link href="{{ asset('assets/css/style.css') }}" rel="stylesheet">
-    </head>
+</head>
 
-    <body>
-    <main>
+<body>
+<main>
+    <div class="container">
+    <section class="py-4 section register min-vh-100 d-flex flex-column align-items-center justify-content-center">
         <div class="container">
-        <section class="py-4 section register min-vh-100 d-flex flex-column align-items-center justify-content-center">
-            <div class="container">
-            <div class="row justify-content-center">
-                <div class="col-lg-4 col-md-6 d-flex flex-column align-items-center justify-content-center">
+        <div class="row justify-content-center">
+            <div class="col-lg-4 col-md-6 d-flex flex-column align-items-center justify-content-center">
 
-                <div class="py-4 d-flex justify-content-center">
-                    <a href="#" class="w-auto logo d-flex align-items-center">
-                    <img src="{{ asset('assets/img/logo.png') }}" alt="">
-                    <span class="d-none d-lg-block">Assetku</span>
-                    </a>
-                </div><!-- End Logo -->
+            <div class="py-4 d-flex justify-content-center">
+                <a href="#" class="w-auto logo d-flex align-items-center">
+                <img src="{{ asset('assets/img/logo.png') }}" alt="">
+                <span class="d-none d-lg-block">Assetku</span>
+                </a>
+            </div><!-- End Logo -->
 
-                <div class="mb-3 card">
-                    <div class="card-body">
+            <div class="mb-3 card">
+                <div class="card-body">
 
-                    <div class="pt-4 pb-2">
-                        <h5 class="pb-0 text-center card-title fs-4">Masuk ke dalam Akunmu</h5>
-                        <p class="text-center small">Masukkan Email & Kata sandi untuk masuk</p>
+                <div class="pt-4 pb-2">
+                    <h5 class="pb-0 text-center card-title fs-4">Masuk ke dalam Akunmu</h5>
+                    <p class="text-center small">Masukkan Email & Kata sandi untuk masuk</p>
+                </div>
+
+                <!-- Laravel Login Form -->
+                <form method="POST" action="{{ route('login') }}" class="row g-3 needs-validation" novalidate>
+                    @csrf <!-- This is critical - CSRF token -->
+
+                    @if (session('status'))
+                    <div class="alert alert-success">
+                        {{ session('status') }}
                     </div>
+                    @endif
 
-                    <!-- Laravel Login Form -->
-                    <form method="POST" action="{{ route('login') }}" class="row g-3 needs-validation" novalidate>
-                        @csrf
-
-                        @if (session('status'))
-                        <div class="alert alert-success">
-                            {{ session('status') }}
-                        </div>
-                        @endif
-
-                        <div class="col-12">
-                        <label for="email" class="form-label">Email</label>
-                        <div class="input-group has-validation">
-                            <span class="input-group-text" id="inputGroupPrepend">@</span>
-                            <input type="email" name="email" class="form-control" id="email" value="{{ old('email') }}" required autofocus>
-                            @error('email')
-                            <div class="invalid-feedback d-block">{{ $message }}</div>
-                            @enderror
-                        </div>
-                        </div>
-
-                        <div class="col-12">
-                        <label for="password" class="form-label">Password</label>
-                        <input type="password" name="password" class="form-control" id="password" required>
-                        @error('password')
-                            <div class="invalid-feedback d-block">{{ $message }}</div>
+                    <div class="col-12">
+                    <label for="email" class="form-label">Email</label>
+                    <div class="input-group has-validation">
+                        <span class="input-group-text" id="inputGroupPrepend">@</span>
+                        <input type="email" name="email" class="form-control" id="email" value="{{ old('email') }}" required autofocus>
+                        @error('email')
+                        <div class="invalid-feedback d-block">{{ $message }}</div>
                         @enderror
-                        </div>
-
-                        <div class="col-12">
-                        <div class="form-check">
-                            <input class="form-check-input" type="checkbox" name="remember" id="rememberMe">
-                            <label class="form-check-label" for="rememberMe">Remember me</label>
-                        </div>
-                        </div>
-
-                        <div class="col-12">
-                        <button class="btn btn-primary w-100" type="submit">Login</button>
-                        </div>
-
-                        @if (Route::has('password.request'))
-                        <div class="text-center col-12">
-                        <a href="{{ route('password.request') }}">Lupa Kata Sandi?</a>
-                        </div>
-                        @endif
-
-                        <div class="col-12">
-                        <p class="mb-0 small">Belum punya akun bre? <a href="{{ route('register') }}">Buat dulu yuk!</a></p>
-                        </div>
-                    </form>
-
                     </div>
-                </div>
+                    </div>
+
+                    <div class="col-12">
+                    <label for="password" class="form-label">Password</label>
+                    <input type="password" name="password" class="form-control" id="password" required>
+                    @error('password')
+                        <div class="invalid-feedback d-block">{{ $message }}</div>
+                    @enderror
+                    </div>
+
+                    <div class="col-12">
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" name="remember" id="rememberMe">
+                        <label class="form-check-label" for="rememberMe">Remember me</label>
+                    </div>
+                    </div>
+
+                    <div class="col-12">
+                    <button class="btn btn-primary w-100" type="submit">Login</button>
+                    </div>
+
+                    @if (Route::has('password.request'))
+                    <div class="text-center col-12">
+                    <a href="{{ route('password.request') }}">Lupa Kata Sandi?</a>
+                    </div>
+                    @endif
+
+                    <div class="col-12">
+                    <p class="mb-0 small">Belum punya akun bre? <a href="{{ route('register') }}">Buat dulu yuk!</a></p>
+                    </div>
+                </form>
 
                 </div>
             </div>
+
             </div>
-        </section>
         </div>
-    </main>
+        </div>
+    </section>
+    </div>
+</main>
 
-    <a href="#" class="back-to-top d-flex align-items-center justify-content-center"><i class="bi bi-arrow-up-short"></i></a>
+<a href="#" class="back-to-top d-flex align-items-center justify-content-center"><i class="bi bi-arrow-up-short"></i></a>
 
-    <!-- Vendor JS Files -->
-    <script src="{{ asset('assets/vendor/bootstrap/js/bootstrap.bundle.min.js') }}"></script>
-    <script src="{{ asset('assets/js/main.js') }}"></script>
+<!-- Vendor JS Files -->
+<script src="{{ asset('assets/vendor/bootstrap/js/bootstrap.bundle.min.js') }}"></script>
+<script src="{{ asset('assets/js/main.js') }}"></script>
 
-    </body>
-    </html>
+<!-- Add this for AJAX CSRF protection -->
+<script>
+    // Set CSRF token for AJAX requests
+    document.addEventListener("DOMContentLoaded", function() {
+        const token = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+        
+        // For any AJAX calls, this ensures the CSRF token is included
+        document.querySelectorAll('form').forEach(form => {
+            if (!form.querySelector('input[name="_token"]')) {
+                const csrfInput = document.createElement('input');
+                csrfInput.type = 'hidden';
+                csrfInput.name = '_token';
+                csrfInput.value = token;
+                form.appendChild(csrfInput);
+            }
+        });
+    });
+</script>
+</body>
+</html>

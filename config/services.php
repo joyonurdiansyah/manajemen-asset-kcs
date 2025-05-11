@@ -34,5 +34,11 @@ return [
             'channel' => env('SLACK_BOT_USER_DEFAULT_CHANNEL'),
         ],
     ],
+    'google' => [
+        'cloud' => [
+            'project_id' => env('GOOGLE_CLOUD_PROJECT_ID', 'auth-ongkos-kirim'),
+            'key_file' => storage_path(env('GOOGLE_CLOUD_KEY_FILE', 'credentials/google-vision-credentials.json')),
+        ],
+    ],
 
 ];

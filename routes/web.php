@@ -6,6 +6,7 @@ use App\Http\Controllers\AssetStatusController;
 use App\Http\Controllers\WarehouseSiteController;
 use App\Http\Controllers\DivisionUserController;
 use App\Http\Controllers\CategoryController;
+use App\Http\Controllers\cekBarangController;
 use App\Http\Controllers\PermissionController;
 use App\Http\Controllers\subcategoryController;
 use Illuminate\Support\Facades\Route;
@@ -15,22 +16,30 @@ Route::get('/', function () {
     return redirect(auth()->check() ? route('assets.fetch') : route('login'));
 });
 
-// Dashboard hanya untuk user yang login & terverifikasi
-Route::get('/dashboard', function () {
-    return view('dashboard');
-})->middleware(['auth', 'verified'])->name('dashboard');
+// Guest area (hanya bisa diakses jika belum login)
+Route::middleware('guest')->group(function () {
+    Route::get('/login', [AuthController::class, 'showLoginForm'])->name('login');
+    Route::post('/login', [AuthController::class, 'login']);
+    Route::get('/register', [AuthController::class, 'showRegistrationForm'])->name('register');
+    Route::post('/register', [AuthController::class, 'register']);
+});
 
-// Authenticated area
-Route::middleware('auth')->group(function () {
-    // Profile
-    Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
-    Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
-    Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
-
+// Authenticated area - semua route di bawah ini memerlukan login
+Route::middleware(['auth', 'verified'])->group(function () {
+    // Dashboard
+    Route::get('/dashboard', function () {
+        return view('home');
+    })->name('dashboard');
+    
     // Home
     Route::get('/home', function () {
         return view('home'); 
     })->name('home');
+
+    // Profile
+    Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
+    Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
+    Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
 
     // Manage Asset
     Route::get('/asset-status', [AssetStatusController::class, 'assetHome'])->name('assets.fetch');
@@ -71,12 +80,11 @@ Route::middleware('auth')->group(function () {
     Route::delete('/category-data/delete/{id}', [CategoryController::class, 'categoryDestroy'])->name('category.destroy');
     Route::get('/category-data/{id}/asset-status', [CategoryController::class, 'getCategoryAssetStatus'])->name('category.asset-status');
 
-    // permission
+    // Permissions
     Route::get('/permissions', [PermissionController::class, 'permissionHome'])->name('role.permissions.index');
     Route::post('/permissions/update', [PermissionController::class, 'update'])->name('permissions.update');
 
-
-    // sub category
+    // Sub Category
     Route::get('/subcategories', [SubcategoryController::class, 'subcategoryHome'])->name('subCategory.index');
     Route::get('/subcategories/data', [SubcategoryController::class, 'getData'])->name('subcategory.data');
     Route::post('/subcategories', [SubcategoryController::class, 'store'])->name('subcategory.store');
@@ -87,14 +95,10 @@ Route::middleware('auth')->group(function () {
     Route::put('/subcategories/{id}', [SubcategoryController::class, 'update'])->name('subcategory.update');
     Route::delete('/subcategories/{id}', [SubcategoryController::class, 'destroy'])->name('subcategory.destroy');
     Route::get('/categories/list', [SubcategoryController::class, 'getList'])->name('category.list');
-});
 
-// Guest area (hanya bisa diakses jika belum login)
-Route::middleware('guest')->group(function () {
-    Route::get('/login', [AuthController::class, 'showLoginForm'])->name('login');
-    Route::post('/login', [AuthController::class, 'login']);
-    Route::get('/register', [AuthController::class, 'showRegistrationForm'])->name('register');
-    Route::post('/register', [AuthController::class, 'register']);
+    // Cek Barang - pindahkan ke dalam middleware auth
+    Route::get('/cekbarang', [cekBarangController::class, 'cekbarang'])->name('cekabarang.index');
+    Route::post('/api/vision-analyze', [cekBarangController::class, 'analyze']);
 });
 
 require __DIR__.'/auth.php';
