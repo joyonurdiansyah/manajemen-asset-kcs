@@ -4,36 +4,131 @@
 <link href='https://cdn.jsdelivr.net/npm/fullcalendar@5.11.3/main.min.css' rel='stylesheet' />
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
 <style>
+    :root {
+        --unassigned-color: #FF6B6B;
+        --open-color: #4ECDC4;
+        --waiting-color: #45B7D1;
+        --resolved-color: #2AB673;
+        
+        --low-priority-color: #FFA726;
+        --medium-priority-color: #FF7043;
+        --high-priority-color: #E53935;
+    }
+
+    body {
+        background-color: #f4f6f9;
+        font-family: 'Arial', sans-serif;
+    }
+
     .fc-event {
         cursor: pointer;
+        border-radius: 6px;
+        transition: all 0.3s ease;
+        box-shadow: 0 2px 5px rgba(0,0,0,0.1);
     }
+
+    .fc-event:hover {
+        opacity: 0.9;
+        transform: scale(1.02);
+    }
+
+    /* Status Colors */
     .event-unassigned {
-        background-color: #ff9800;
-        border-color: #ff9800;
+        background-color: var(--unassigned-color) !important;
+        border-color: var(--unassigned-color) !important;
     }
+
     .event-open {
-        background-color: #2196f3;
-        border-color: #2196f3;
+        background-color: var(--open-color) !important;
+        border-color: var(--open-color) !important;
     }
+
     .event-waiting {
-        background-color: #9c27b0;
-        border-color: #9c27b0;
+        background-color: var(--waiting-color) !important;
+        border-color: var(--waiting-color) !important;
     }
+
     .event-resolved {
-        background-color: #4caf50;
-        border-color: #4caf50;
+        background-color: var(--resolved-color) !important;
+        border-color: var(--resolved-color) !important;
     }
+
+    /* Priority Indicators */
+    .priority-low {
+        border-left: 4px solid var(--low-priority-color);
+    }
+
+    .priority-medium {
+        border-left: 4px solid var(--medium-priority-color);
+    }
+
+    .priority-high {
+        border-left: 4px solid var(--high-priority-color);
+    }
+
     #calendar {
-        margin-top: 20px;
-    }
-    .filter-section {
-        margin-bottom: 20px;
+        background-color: white;
+        border-radius: 10px;
+        box-shadow: 0 4px 6px rgba(0,0,0,0.1);
         padding: 15px;
-        background-color: #f9f9f9;
-        border-radius: 5px;
     }
+
     .fc-toolbar-title {
+        font-weight: bold;
+        color: #2c3e50;
         text-transform: capitalize;
+    }
+
+    .fc-button {
+        background-color: #3498db !important;
+        border: none !important;
+        transition: all 0.3s ease;
+    }
+
+    .fc-button:hover {
+        background-color: #2980b9 !important;
+    }
+
+    .fc-event-main {
+        display: flex;
+        flex-direction: column;
+        padding: 5px;
+    }
+
+    .fc-event-title {
+        font-weight: bold;
+        margin-bottom: 3px;
+    }
+
+    .fc-event-dates {
+        font-size: 0.8em;
+        opacity: 0.8;
+    }
+
+    .filter-section {
+        background-color: #f8f9fa;
+        border-radius: 8px;
+        padding: 15px;
+        margin-bottom: 20px;
+    }
+
+    .status-legend, .priority-legend {
+        display: flex;
+        gap: 10px;
+        align-items: center;
+        margin-bottom: 10px;
+    }
+
+    .status-legend-item, .priority-legend-item {
+        display: flex;
+        align-items: center;
+        gap: 5px;
+    }
+
+    .status-legend-color, .priority-legend-color {
+        width: 15px;
+        height: 15px;
+        border-radius: 50%;
     }
 </style>
 
@@ -154,20 +249,46 @@
                 let event = arg.event;
                 let startDate = event.start ? event.start.toLocaleDateString() : '';
                 let endDate = event.end ? event.end.toLocaleDateString() : startDate;
+
+                const priority = event.extendedProps.priority || 'low';
+                const status = event.extendedProps.status || 'unassigned';
+                
+                // Create priority icon
+                const getPriorityIcon = (priorityLevel) => {
+                    switch(priorityLevel) {
+                        case 'high': return '🔥';
+                        case 'medium': return '⚠️'; 
+                        default: return '✅'; 
+                    }
+                };
                 
                 // Create a custom HTML element for the event rendering
                 let eventElement = document.createElement('div');
+                eventElement.classList.add(`priority-${priority}`);
                 eventElement.innerHTML = `
                     <div class="fc-event-main">
-                        <div class="fc-event-title">${event.title || event.extendedProps.request_subject}</div>
+                        <div class="fc-event-title">
+                            <span class="priority-icon">${getPriorityIcon(priority)}</span>
+                            ${event.title || event.extendedProps.request_subject}
+                        </div>
                         <div class="fc-event-dates">
-                            <small>Mulai: ${startDate}</small>
-                            <small>Selesai: ${endDate}</small>
+                            <small>🕒 Mulai: ${startDate}</small>
+                            <small>✔️ Selesai: ${endDate}</small>
                         </div>
                     </div>
                 `;
                 
                 return { domNodes: [eventElement] };
+            },
+
+            eventClassNames: function(arg) {
+                const status = arg.event.extendedProps.status || 'unassigned';
+                const priority = arg.event.extendedProps.priority || 'low';
+                
+                return [
+                    `event-${status}`,
+                    `priority-${priority}`
+                ];
             },
         
             
