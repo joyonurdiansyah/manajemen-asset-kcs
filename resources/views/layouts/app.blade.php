@@ -5,6 +5,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="csrf-token" content="{{ csrf_token() }}">
+    @auth
+    <meta name="user-role" content="{{ auth()->user()->roles->pluck('name')->first() }}">
+@endauth
     <title>AssetKu</title>
 
     <!-- Google Fonts -->
@@ -54,6 +57,9 @@
     <script src="{{ asset('assets/vendor/simple-datatables/simple-datatables.js') }}"></script>
     <script src="{{ asset('assets/vendor/tinymce/tinymce.min.js') }}"></script>
     <script src="{{ asset('assets/vendor/php-email-form/validate.js') }}"></script>
+    @section('scripts')
+    <!-- Script lainnya -->
+    <script src="{{ asset('js/role-permissions.js') }}"></script>
 
     {{-- DataTables --}}
     <script type="text/javascript" charset="utf8" src="https://cdn.datatables.net/1.11.5/js/jquery.dataTables.js"></script> <!-- Pindahkan setelah jQuery -->

@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\AssetCheckScheduleController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\AssetStatusController;
@@ -99,6 +100,16 @@ Route::middleware(['auth', 'verified'])->group(function () {
     // Cek Barang - pindahkan ke dalam middleware auth
     Route::get('/cekbarang', [cekBarangController::class, 'cekbarang'])->name('cekabarang.index');
     Route::post('/api/vision-analyze', [cekBarangController::class, 'analyze']);
+
+    // penjadwalan audit
+    Route::get('/jadwal', [AssetCheckScheduleController::class, 'jadwalHome'])->name('jadwal.index');
+    // on proses
+    Route::get('/jadwal/fetch', [AssetCheckScheduleController::class, 'fetch'])->name('jadwal.fetch');
+    Route::post('/jadwal/store', [AssetCheckScheduleController::class, 'store'])->name('jadwal.store');
+    Route::get('/jadwal/edit/{id}', [AssetCheckScheduleController::class, 'edit'])->name('jadwal.edit');
+    Route::post('/jadwal/update/{id}', [AssetCheckScheduleController::class, 'update'])->name('jadwal.update');
+    Route::post('/jadwal/update-status/{id}', [AssetCheckScheduleController::class, 'updateStatus'])->name('jadwal.update-status');
+    Route::delete('/jadwal/delete/{id}', [AssetCheckScheduleController::class, 'destroy'])->name('jadwal.destroy');
 });
 
 require __DIR__.'/auth.php';

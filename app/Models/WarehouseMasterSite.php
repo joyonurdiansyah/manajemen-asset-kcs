@@ -16,4 +16,10 @@ class WarehouseMasterSite extends Model
     {
         return $this->hasMany(AssetStatus::class);
     }
+
+
+    public function assetCheckSchedules()
+    {
+        return $this->hasMany(AssetCheckSchedule::class);
+    }
 }
