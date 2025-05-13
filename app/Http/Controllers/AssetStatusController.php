@@ -115,118 +115,152 @@ class AssetStatusController extends Controller
     }
 
     public function downloadImportTemplate()
-    {
-        // Create Excel
-        $spreadsheet = new Spreadsheet();
-        $sheet = $spreadsheet->getActiveSheet();
+{
+    // Create Excel
+    $spreadsheet = new Spreadsheet();
+    $sheet = $spreadsheet->getActiveSheet();
 
-        // Headers
-        $headers = [
-            'Nomor Asset',
-            'Merk Barang',
-            'Serial Number',
-            'Lokasi Awal (Kode)',
-            'Lokasi Tujuan (Kode)',
-            'Kategori (Nama)',
-            'Subkategori (Nama)',
-            'Tanggal Kunjungan (YYYY-MM-DD)',
-            'Status Barang (oke/rusak/perbaikan)',
-            'Notes'
-        ];
+    // Headers
+    $headers = [
+        'Nomor Asset',
+        'Merk Barang',
+        'Serial Number',
+        'Lokasi Awal (Kode)',
+        'Lokasi Tujuan (Kode)',
+        'Kategori (Nama)',
+        'Subkategori (Nama)',
+        'Tanggal Kunjungan (YYYY-MM-DD)',
+        'Status Barang (oke/rusak/perbaikan)',
+        'Notes'
+    ];
 
-        // Add headers
-        $sheet->fromArray([$headers], NULL, 'A1');
+    // Add headers
+    $sheet->fromArray([$headers], NULL, 'A1');
 
-        // Add example data
-        $exampleData = [
-            'A001',
-            'Lenovo',
-            'SN12345678',
-            'LOK001',
-            'LOK002',
-            'Laptop',
-            'Notebook',
-            date('Y-m-d'),
-            'oke',
-            'Asset baru'
-        ];
-        $sheet->fromArray([$exampleData], NULL, 'A2');
+    // Example data rows based on your sample
+    $exampleData = [
+        [
+            '0311100004929', 'MONITOR DELL', '', '111', '100', 'Monitor', '', date('Y-m-d'), 'Oke', 'RUANG ADMIN'
+        ],
+        [
+            '0311100004899', 'CPU DELL', '', '111', '100', 'CPU', '', date('Y-m-d'), 'Oke', ''
+        ],
+        [
+            '', 'KEYBOARD', '', '111', '100', 'KEYBOARD', '', date('Y-m-d'), 'Oke', ''
+        ],
+        [
+            '', 'MOUSE', '', '111', '100', 'MOUSE', '', date('Y-m-d'), 'Oke', ''
+        ],
+        [
+            '0311200000395', 'MONITOR DELL', '', '111', '100', 'MONITOR', '', date('Y-m-d'), 'Oke', 'RUANG ADMIN'
+        ]
+    ];
 
-        // Style header row
-        $headerStyle = [
-            'font' => [
-                'bold' => true,
-                'color' => ['rgb' => 'FFFFFF'],
-            ],
-            'fill' => [
-                'fillType' => \PhpOffice\PhpSpreadsheet\Style\Fill::FILL_SOLID,
-                'startColor' => ['rgb' => '4472C4'],
-            ],
-            'alignment' => [
-                'horizontal' => \PhpOffice\PhpSpreadsheet\Style\Alignment::HORIZONTAL_CENTER,
-            ],
-        ];
-
-        $sheet->getStyle('A1:J1')->applyFromArray($headerStyle);
-
-        // Auto size columns
-        foreach (range('A', 'J') as $column) {
-            $sheet->getColumnDimension($column)->setAutoSize(true);
-        }
-
-        // Create a temporary file
-        $tempFile = tempnam(sys_get_temp_dir(), 'excel');
-
-        // Save file
-        $writer = new Xlsx($spreadsheet);
-        $writer->save($tempFile);
-
-        // Return file as download
-        return response()->download($tempFile, 'Template_Import_Assets_IT.xlsx', [
-            'Content-Type' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-        ])->deleteFileAfterSend(true);
+    // Add the example data rows
+    $row = 2;
+    foreach ($exampleData as $rowData) {
+        $sheet->fromArray([$rowData], NULL, "A{$row}");
+        $row++;
     }
+
+    // Style header row
+    $headerStyle = [
+        'font' => [
+            'bold' => true,
+            'color' => ['rgb' => 'FFFFFF'],
+        ],
+        'fill' => [
+            'fillType' => \PhpOffice\PhpSpreadsheet\Style\Fill::FILL_SOLID,
+            'startColor' => ['rgb' => '4472C4'],
+        ],
+        'alignment' => [
+            'horizontal' => \PhpOffice\PhpSpreadsheet\Style\Alignment::HORIZONTAL_CENTER,
+        ],
+    ];
+
+    $sheet->getStyle('A1:J1')->applyFromArray($headerStyle);
+
+    // Add data validation for Status Barang column
+    $validation = $sheet->getCell('I2')->getDataValidation();
+    $validation->setType(\PhpOffice\PhpSpreadsheet\Cell\DataValidation::TYPE_LIST);
+    $validation->setErrorStyle(\PhpOffice\PhpSpreadsheet\Cell\DataValidation::STYLE_INFORMATION);
+    $validation->setAllowBlank(false);
+    $validation->setShowInputMessage(true);
+    $validation->setShowErrorMessage(true);
+    $validation->setShowDropDown(true);
+    $validation->setFormula1('"oke,rusak,perbaikan"');
+    
+    // Copy validation to all cells in the Status column
+    for ($i = 3; $i <= 20; $i++) {
+        $sheet->getCell("I{$i}")->setDataValidation(clone $validation);
+    }
+    
+    // Set date format for the date column
+    $dateStyle = [
+        'numberFormat' => [
+            'formatCode' => 'YYYY-MM-DD',
+        ],
+    ];
+    $sheet->getStyle('H2:H20')->applyFromArray($dateStyle);
+
+    // Auto size columns
+    foreach (range('A', 'J') as $column) {
+        $sheet->getColumnDimension($column)->setAutoSize(true);
+    }
+
+    // Create a temporary file
+    $tempFile = tempnam(sys_get_temp_dir(), 'excel');
+
+    // Save file
+    $writer = new Xlsx($spreadsheet);
+    $writer->save($tempFile);
+
+    // Return file as download
+    return response()->download($tempFile, 'Template_Import_Assets_IT.xlsx', [
+        'Content-Type' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+    ])->deleteFileAfterSend(true);
+}
 
     public function importExcelAsset(Request $request)
     {
         // Validate the file input
         $validator = Validator::make($request->all(), [
-            'excel_file' => 'required|file|mimes:xlsx|max:10240', // 10MB max
+            'excel_file' => 'required|file|mimes:xlsx|max:10240', 
         ]);
-
+    
         if ($validator->fails()) {
             return response()->json(['message' => 'Validation failed', 'errors' => $validator->errors()], 422);
         }
-
+    
         $file = $request->file('excel_file');
-
+    
         try {
             $spreadsheet = IOFactory::load($file);
             $worksheet = $spreadsheet->getActiveSheet();
             $rows = $worksheet->toArray();
-
+    
             array_shift($rows);
-
+    
             $successCount = 0;
             $errors = [];
             $locationsByCode = WarehouseMasterSite::pluck('id', 'kode')->toArray();
             $categoriesByName = Category::pluck('id', 'name')->toArray();
             $subcategoriesByNameAndCategory = [];
-
+    
             foreach (Subcategory::with('category')->get() as $subcategory) {
                 $key = strtolower($subcategory->name . '_' . $subcategory->category_id);
                 $subcategoriesByNameAndCategory[$key] = $subcategory->id;
             }
-
+    
             DB::beginTransaction();
-
+    
             try {
                 foreach ($rows as $index => $row) {
                     $rowNumber = $index + 2; 
                     if (empty($row[0]) && empty($row[1]) && empty($row[2])) {
                         continue;
                     }
-
+    
                     // Extract data from row
                     $assetCode = trim($row[0]);
                     $brand = trim($row[1]);
@@ -238,46 +272,41 @@ class AssetStatusController extends Controller
                     $tanggalVisit = trim($row[7]);
                     $statusBarang = strtolower(trim($row[8]));
                     $notes = trim($row[9]);
-
-                    // Validate required fields
-                    if (empty($assetCode) || empty($brand) || empty($lokasiAwalCode) || empty($categoryName)) {
-                        $errors[] = [
-                            'row' => $rowNumber,
-                            'message' => 'Nomor Asset, Merk Barang, Lokasi Awal, dan Kategori wajib diisi.'
-                        ];
-                        continue;
+    
+                    if (!empty($assetCode)) {
+                        $existingAsset = AssetStatus::where('asset_code', $assetCode)->first();
+                        if ($existingAsset) {
+                            $errors[] = [
+                                'row' => $rowNumber,
+                                'message' => "Nomor Asset '{$assetCode}' sudah ada di database."
+                            ];
+                            continue;
+                        }
                     }
-
-                    // Validate status_barang
-                    $validStatuses = ['oke', 'rusak', 'perbaikan'];
-                    if (!empty($statusBarang) && !in_array($statusBarang, $validStatuses)) {
-                        $errors[] = [
-                            'row' => $rowNumber,
-                            'message' => 'Status Barang harus berupa: oke, rusak, atau perbaikan.'
-                        ];
-                        continue;
+    
+                    // Find lokasi_awal_id by code (if provided)
+                    $lokasiAwalId = null;
+                    if (!empty($lokasiAwalCode)) {
+                        $lokasiAwalId = isset($locationsByCode[strtoupper($lokasiAwalCode)])
+                            ? $locationsByCode[strtoupper($lokasiAwalCode)]
+                            : null;
+    
+                        if (!$lokasiAwalId) {
+                            $errors[] = [
+                                'row' => $rowNumber,
+                                'message' => "Lokasi Awal dengan kode '{$lokasiAwalCode}' tidak ditemukan."
+                            ];
+                            continue;
+                        }
                     }
-
-                    // Find lokasi_awal_id by code
-                    $lokasiAwalId = isset($locationsByCode[strtoupper($lokasiAwalCode)])
-                        ? $locationsByCode[strtoupper($lokasiAwalCode)]
-                        : null;
-
-                    if (!$lokasiAwalId) {
-                        $errors[] = [
-                            'row' => $rowNumber,
-                            'message' => "Lokasi Awal dengan kode '{$lokasiAwalCode}' tidak ditemukan."
-                        ];
-                        continue;
-                    }
-
+    
                     // Find lokasi_tujuan_id by code (optional)
                     $lokasiTujuanId = null;
                     if (!empty($lokasiTujuanCode)) {
                         $lokasiTujuanId = isset($locationsByCode[strtoupper($lokasiTujuanCode)])
                             ? $locationsByCode[strtoupper($lokasiTujuanCode)]
                             : null;
-
+    
                         if (!$lokasiTujuanId) {
                             $errors[] = [
                                 'row' => $rowNumber,
@@ -286,20 +315,23 @@ class AssetStatusController extends Controller
                             continue;
                         }
                     }
-
-                    // Find category_id by name
-                    $categoryId = isset($categoriesByName[ucwords(strtolower($categoryName))])
-                        ? $categoriesByName[ucwords(strtolower($categoryName))]
-                        : null;
-
-                    if (!$categoryId) {
-                        $errors[] = [
-                            'row' => $rowNumber,
-                            'message' => "Kategori dengan nama '{$categoryName}' tidak ditemukan."
-                        ];
-                        continue;
+    
+                    // Find category_id by name (if provided)
+                    $categoryId = null;
+                    if (!empty($categoryName)) {
+                        $categoryId = isset($categoriesByName[ucwords(strtolower($categoryName))])
+                            ? $categoriesByName[ucwords(strtolower($categoryName))]
+                            : null;
+    
+                        if (!$categoryId) {
+                            $errors[] = [
+                                'row' => $rowNumber,
+                                'message' => "Kategori dengan nama '{$categoryName}' tidak ditemukan."
+                            ];
+                            continue;
+                        }
                     }
-
+    
                     // Find subcategory_id by name and category_id (optional)
                     $subcategoryId = null;
                     if (!empty($subcategoryName) && $categoryId) {
@@ -308,7 +340,7 @@ class AssetStatusController extends Controller
                             ? $subcategoriesByNameAndCategory[$subcategoryKey]
                             : null;
                     }
-
+    
                     // Validate date format
                     $formattedDate = null;
                     if (!empty($tanggalVisit)) {
@@ -322,17 +354,17 @@ class AssetStatusController extends Controller
                             continue;
                         }
                     }
-
-                    // Check if asset_code already exists
-                    $existingAsset = AssetStatus::where('asset_code', $assetCode)->first();
-                    if ($existingAsset) {
+    
+                    // Validate status_barang
+                    $validStatuses = ['oke', 'rusak', 'perbaikan'];
+                    if (!empty($statusBarang) && !in_array($statusBarang, $validStatuses)) {
                         $errors[] = [
                             'row' => $rowNumber,
-                            'message' => "Nomor Asset '{$assetCode}' sudah ada di database."
+                            'message' => "Status Barang harus berupa: oke, rusak, atau perbaikan."
                         ];
                         continue;
                     }
-
+    
                     // Create new asset record
                     $asset = new AssetStatus();
                     $asset->asset_code = $assetCode;
@@ -347,28 +379,28 @@ class AssetStatusController extends Controller
                     $asset->notes = $notes;
                     $asset->warehouse_master_site_id = $lokasiAwalId; 
                     $asset->save();
-
+    
                     $successCount++;
                 }
-
-                // Commit transaction if no errors
+    
+                // kalo ga ada error lanjut commit
                 DB::commit();
-
+    
                 return response()->json([
                     'success' => $successCount,
                     'errors' => $errors,
                     'message' => 'Import selesai'
                 ]);
-
+    
             } catch (\Exception $e) {
-                // Rollback transaction if any error
+                // kembalikan ke awal jika terjadi error
                 DB::rollBack();
-
+    
                 return response()->json([
                     'message' => 'Error during import: ' . $e->getMessage()
                 ], 500);
             }
-
+    
         } catch (\PhpOffice\PhpSpreadsheet\Reader\Exception $e) {
             return response()->json([
                 'message' => 'Error reading Excel file: ' . $e->getMessage()
