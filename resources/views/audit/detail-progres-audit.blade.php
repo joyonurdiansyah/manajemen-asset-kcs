@@ -157,7 +157,7 @@
                 <select class="w-auto form-select" id="locationFilter">
                     <option selected value="">Semua Lokasi</option>
                     @foreach($sites as $site)
-                        <option value="{{ $site->id }}">{{ $site->name }}</option>
+                        <option value="{{ $site->id }}">{{ $site->nama_lokasi }}</option>
                     @endforeach
                 </select>
                 <button class="btn btn-primary" id="searchButton">Cari</button>
@@ -333,7 +333,7 @@
                 <h5 class="modal-title">Update Status Aset</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
-            <form id="updateStatusForm" action="{{ route('asset-check-schedules.update-status') }}" method="POST">
+            <form id="updateStatusForm" method="POST">
                 @csrf
                 @method('PUT')
                 <div class="modal-body">
@@ -421,44 +421,47 @@
             
             // AJAX request to get asset details
             $.ajax({
-                url: `/asset-check-schedules/${assetId}`,
+                url: `/detail-audit/${assetId}`,
                 method: 'GET',
                 success: function(response) {
                     // Fill modal with asset details
-                    $('#modalSubject').text(response.request_subject);
-                    $('#modalDescription').text(response.description || 'Tidak ada deskripsi');
-                    
+                    const data = response.data;
+
+                    // Fill modal with asset details
+                    $('#modalSubject').text(data.request_subject);
+                    $('#modalDescription').text(data.description || 'Tidak ada deskripsi');
+
                     // Format priority display
                     let priorityText, priorityBadge;
-                    if (response.priority === 'high') {
+                    if (data.priority === 'high') {
                         priorityText = 'Tinggi';
                         priorityBadge = 'bg-danger';
-                    } else if (response.priority === 'medium') {
+                    } else if (data.priority === 'medium') {
                         priorityText = 'Sedang';
                         priorityBadge = 'bg-warning';
                     } else {
                         priorityText = 'Rendah';
                         priorityBadge = 'bg-info';
                     }
-                    
+
                     $('#modalPriority').html(`<span class="badge ${priorityBadge}">Prioritas ${priorityText}</span>`);
-                    $('#modalLocation').text(response.warehouse_master_site.nama_lokasi);
-                    
-                    const arrivalDate = response.arrival_date ? new Date(response.arrival_date).toLocaleDateString('id-ID') : 'Belum dijadwalkan';
-                    const completedDate = response.arrival_completed_date ? new Date(response.arrival_completed_date).toLocaleDateString('id-ID') : 'Belum selesai';
-                    
+                    $('#modalLocation').text(data.warehouse_master_site.nama_lokasi);
+
+                    const arrivalDate = data.arrival_date ? new Date(data.arrival_date).toLocaleDateString('id-ID') : 'Belum dijadwalkan';
+                    const completedDate = data.arrival_completed_date ? new Date(data.arrival_completed_date).toLocaleDateString('id-ID') : 'Belum selesai';
+
                     $('#modalArrivalDate').text(arrivalDate);
                     $('#modalCompletedDate').text(completedDate);
-                    
+
                     // Populate progress tracker in modal
                     const statuses = ['unassigned', 'open', 'waiting', 'resolved'];
-                    const currentStatusIndex = statuses.indexOf(response.status);
-                    
+                    const currentStatusIndex = statuses.indexOf(data.status);
+
                     let progressTrackerHtml = '';
                     statuses.forEach((status, index) => {
                         let stepClass = '';
                         let stepIcon = '';
-                        
+
                         if (index < currentStatusIndex) {
                             stepClass = 'completed';
                             stepIcon = '<i class="bi bi-check"></i>';
@@ -476,7 +479,7 @@
                         } else {
                             stepIcon = (index + 1).toString();
                         }
-                        
+
                         progressTrackerHtml += `
                             <div class="progress-step ${stepClass}">
                                 <div class="progress-step-circle">
@@ -486,19 +489,18 @@
                             </div>
                         `;
                     });
-                    
-                    // Add progress lines
+
                     for (let i = 0; i < 3; i++) {
                         const lineClass = i < currentStatusIndex ? 'active' : '';
                         progressTrackerHtml += `<div class="progress-line ${lineClass}" style="width: 33%; left: ${i * 33}%;"></div>`;
                     }
-                    
+
                     $('#modalProgressTracker').html(progressTrackerHtml);
-                    
-                    // Populate status history
-                    if (response.status_history && response.status_history.length > 0) {
+
+                    // Populate status history if available (optional, assuming you have it)
+                    if (data.status_history && data.status_history.length > 0) {
                         let historyHtml = '';
-                        response.status_history.forEach(history => {
+                        data.status_history.forEach(history => {
                             historyHtml += `
                                 <li class="list-group-item">
                                     <div class="d-flex justify-content-between">
@@ -529,6 +531,47 @@
             $('#assetDetailModal').modal('hide');
             $('#updateStatusModal').modal('show');
         });
+
+        // Submit update status form via AJAX
+        $('#updateStatusForm').on('submit', function(e) {
+            e.preventDefault();
+
+            const assetId = $('#assetScheduleId').val(); // Get asset ID
+            const status = $('#newStatus').val();
+            const note = $('#statusNote').val();
+            const completedDate = $('#completionDate').val();
+
+            $.ajax({
+                url: `/detail-audit/${assetId}/update-status`,
+                type: 'PUT',
+                data: {
+                    _token: $('input[name="_token"]').val(), // CSRF token
+                    status: status,
+                    note: note,
+                    arrival_completed_date: completedDate
+                },
+                success: function(response) {
+                    $('#updateStatusModal').modal('hide');
+                    alert('Status berhasil diperbarui.');
+
+                    // Optional: reload page or update card UI
+                    location.reload();
+                },
+                error: function(xhr) {
+                    if (xhr.status === 422) {
+                        const errors = xhr.responseJSON.errors;
+                        let errorMessage = 'Validasi gagal:\n';
+                        for (const key in errors) {
+                            errorMessage += `- ${errors[key]}\n`;
+                        }
+                        alert(errorMessage);
+                    } else {
+                        alert('Terjadi kesalahan saat memperbarui status.');
+                    }
+                }
+            });
+        });
+
         
         // Show/hide completion date based on status selection
         $('#newStatus').on('change', function() {

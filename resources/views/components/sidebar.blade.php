@@ -81,12 +81,12 @@
         @endhasrole
 
         @hasrole('super-admin|Developer')
-        <li class="nav-item">
-            <a class="nav-link collapsed" href="klasifikasi-site.html">
-                <i class="bi bi-diagram-3"></i>
-                <span>Pengecekkan barang</span>
-            </a>
-        </li><!-- End Klasifikasi Site Nav -->
+            <li class="nav-item">
+                <a class="nav-link {{ Request::routeIs('detail.audit.index') ? 'active' : 'collapsed' }}" href="{{ route('detail.audit.index') }}">
+                    <i class="bi bi-diagram-3"></i>
+                    <span>Detail Progres Audit</span>
+                </a>
+            </li>
         @endhasrole
     </ul>
 </aside>

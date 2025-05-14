@@ -114,9 +114,9 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::delete('/jadwal/delete/{id}', [AssetCheckScheduleController::class, 'destroy'])->name('jadwal.destroy');
 
     // detail audit schedule proses
-    Route::get('/detail-audit-index', [detailProgresController::class, 'detailAuditIndex'])->name('detail.audit.index');
+    Route::get('/detail-audit-index', [detailProgresController::class, 'index'])->name('detail.audit.index');
     Route::get('/detail-audit/{id}', [AssetCheckScheduleController::class, 'show'])->name('asset-check-schedules.show');
-    Route::put('/detail-audit/update-status', [AssetCheckScheduleController::class, 'updateStatus'])->name('asset-check-schedules.update-status');
+    Route::put('/detail-audit/{id}/update-status', [AssetCheckScheduleController::class, 'updateStatus'])->name('asset-check-schedules.update-status');
     Route::get('/detail-audit/filter', [AssetCheckScheduleController::class, 'filter'])->name('asset-check-schedules.filter');
 
 });

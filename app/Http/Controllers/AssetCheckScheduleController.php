@@ -107,10 +107,12 @@ class AssetCheckScheduleController extends Controller
     {
         $request->validate([
             'status' => 'required|string',
+            'note' => 'nullable|string',
         ]);
 
         $event = AssetCheckSchedule::findOrFail($id);
         $event->status = $request->status;
+        $event->note = $request->note;
         $event->save();
 
         return response()->json(['status' => 'status_updated']);
@@ -123,5 +125,16 @@ class AssetCheckScheduleController extends Controller
 
         return response()->json(['status' => 'deleted']);
     }
+
+    public function show($id)
+    {
+        $event = AssetCheckSchedule::with('warehouseMasterSite')->findOrFail($id);
+
+        return response()->json([
+            'status' => 'success',
+            'data' => $event
+        ]);
+    }
+
 
 }

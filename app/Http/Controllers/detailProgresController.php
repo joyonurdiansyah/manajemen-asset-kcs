@@ -15,7 +15,7 @@ class detailProgresController extends Controller
         $assetSchedules = AssetCheckSchedule::with('warehouseMasterSite')->get();
         $sites = WarehouseMasterSite::all();
         
-        return view('asset_check_schedules', compact('assetSchedules', 'sites'));
+        return view('audit.detail-progres-audit', compact('assetSchedules', 'sites'));
     }
     
     /**
@@ -34,46 +34,39 @@ class detailProgresController extends Controller
      */
 
     // on progres
-    // public function updateStatus(Request $request)
-    // {
-    //     $validator = Validator::make($request->all(), [
-    //         'asset_check_schedule_id' => 'required|exists:asset_check_schedules,id',
-    //         'status' => 'required|in:unassigned,open,waiting,resolved',
-    //         'note' => 'nullable|string',
-    //         'arrival_completed_date' => 'nullable|date'
-    //     ]);
+    public function updateStatus(Request $request)
+    {
+        $validator = Validator::make($request->all(), [
+            'asset_check_schedule_id' => 'required|exists:asset_check_schedules,id',
+            'status' => 'required|in:unassigned,open,waiting,resolved',
+            'note' => 'nullable|string',
+            'arrival_completed_date' => 'nullable|date'
+        ]);
         
-    //     if ($validator->fails()) {
-    //         return redirect()->back()
-    //             ->withErrors($validator)
-    //             ->withInput();
-    //     }
+        if ($validator->fails()) {
+            return redirect()->back()
+                ->withErrors($validator)
+                ->withInput();
+        }
         
-    //     $assetSchedule = AssetCheckSchedule::findOrFail($request->asset_check_schedule_id);
-    //     $oldStatus = $assetSchedule->status;
-    //     $newStatus = $request->status;
+        $assetSchedule = AssetCheckSchedule::findOrFail($request->asset_check_schedule_id);
+        $newStatus = $request->status;
         
-    //     // Update asset check schedule status
-    //     $assetSchedule->status = $newStatus;
-        
-    //     // If status is resolved, update the completion date
-    //     if ($newStatus === 'resolved') {
-    //         $assetSchedule->arrival_completed_date = $request->arrival_completed_date ?? now();
-    //     }
-        
-    //     $assetSchedule->save();
-        
-    //     // Create status history entry
-    //     AssetStatusHistory::create([
-    //         'asset_check_schedule_id' => $assetSchedule->id,
-    //         'status' => $newStatus,
-    //         'note' => $request->note,
-    //         'changed_by' => auth()->id() ?? 1 // Default to ID 1 if not authenticated
-    //     ]);
-        
-    //     return redirect()->route('asset-check-schedules.index')
-    //         ->with('success', 'Status aset berhasil diperbarui.');
-    // }
+        // Update data
+        $assetSchedule->status = $newStatus;
+        $assetSchedule->note = $request->note;
+        $assetSchedule->changed_by = auth()->user()->name ?? 'System';
+    
+        if ($newStatus === 'resolved') {
+            $assetSchedule->arrival_completed_date = $request->arrival_completed_date ?? now();
+        }
+    
+        $assetSchedule->save();
+    
+        return redirect()->route('asset-check-schedules.index')
+            ->with('success', 'Status aset berhasil diperbarui.');
+    }
+    
     
     /**
      * Filter asset check schedules based on search criteria.
@@ -105,6 +98,6 @@ class detailProgresController extends Controller
         }
         
         $sites = WarehouseMasterSite::all();
-        return view('asset_check_schedules', compact('assetSchedules', 'sites'));
+        return view('audit.detail-progres-audit', compact('assetSchedules', 'sites'));
     }
 }
