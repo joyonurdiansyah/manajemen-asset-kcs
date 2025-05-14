@@ -31,6 +31,37 @@ class AssetStatusController extends Controller
     {
         $assets = AssetStatus::with(['warehouseMasterSite', 'category', 'lokasiAwal', 'lokasiTujuan', 'subcategory'])->get();
 
+        return $this->generateExcel($assets);
+    }
+
+    public function exportFilteredExcelAsset(Request $request)
+    {
+        // Validate request
+        $request->validate([
+            'filtered_data' => 'required|string',
+        ]);
+
+        // Decode the JSON string to get filtered data IDs
+        $filteredData = json_decode($request->filtered_data, true);
+        
+        // Extract IDs from filtered data
+        $filteredIds = array_map(function($item) {
+            return $item['id'];
+        }, $filteredData);
+        
+        // Query only the filtered assets
+        $assets = AssetStatus::with(['warehouseMasterSite', 'category', 'lokasiAwal', 'lokasiTujuan', 'subcategory'])
+                    ->whereIn('id', $filteredIds)
+                    ->get();
+
+        return $this->generateExcel($assets);
+    }
+
+    /**
+     * Generate Excel file from assets collection
+     */
+    private function generateExcel($assets)
+    {
         $data = [];
 
         // Header row

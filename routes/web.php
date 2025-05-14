@@ -8,6 +8,7 @@ use App\Http\Controllers\WarehouseSiteController;
 use App\Http\Controllers\DivisionUserController;
 use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\cekBarangController;
+use App\Http\Controllers\detailProgresController;
 use App\Http\Controllers\PermissionController;
 use App\Http\Controllers\subcategoryController;
 use Illuminate\Support\Facades\Route;
@@ -53,6 +54,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/get-subcategories/{category_id}', [AssetStatusController::class, 'getSubcategories']);
     Route::post('/assets/import', [AssetStatusController::class, 'importExcelAsset'])->name('assets.import');
     Route::get('/assets/import-template', [AssetStatusController::class, 'downloadImportTemplate'])->name('assets.import.template');
+    Route::post('/assets/export/filtered', [AssetStatusController::class, 'exportFilteredExcelAsset'])->name('assets.export.filtered');
 
     // Manage Site
     Route::get('/master-site', [WarehouseSiteController::class, 'siteHome'])->name('site.home');
@@ -110,6 +112,13 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::post('/jadwal/update/{id}', [AssetCheckScheduleController::class, 'update'])->name('jadwal.update');
     Route::post('/jadwal/update-status/{id}', [AssetCheckScheduleController::class, 'updateStatus'])->name('jadwal.update-status');
     Route::delete('/jadwal/delete/{id}', [AssetCheckScheduleController::class, 'destroy'])->name('jadwal.destroy');
+
+    // detail audit schedule proses
+    Route::get('/detail-audit-index', [detailProgresController::class, 'detailAuditIndex'])->name('detail.audit.index');
+    Route::get('/detail-audit/{id}', [AssetCheckScheduleController::class, 'show'])->name('asset-check-schedules.show');
+    Route::put('/detail-audit/update-status', [AssetCheckScheduleController::class, 'updateStatus'])->name('asset-check-schedules.update-status');
+    Route::get('/detail-audit/filter', [AssetCheckScheduleController::class, 'filter'])->name('asset-check-schedules.filter');
+
 });
 
 require __DIR__.'/auth.php';

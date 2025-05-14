@@ -204,6 +204,51 @@
             background-color: #c82333;
             transform: translateY(-1px);
         }
+
+        //style filter
+        .filter-container {
+            background-color: #f8f9fa;
+            padding: 15px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+            border: 1px solid #dee2e6;
+        }
+
+        .filter-group {
+            min-width: 180px;
+            margin-right: 10px;
+            margin-bottom: 10px;
+        }
+
+        .filter-group label {
+            display: block;
+            margin-bottom: 3px;
+            font-weight: 500;
+            font-size: 0.9rem;
+        }
+
+        .btn-filter {
+            background-color: #17a2b8;
+            color: white;
+            margin-right: 10px;
+        }
+
+        .btn-filter:hover {
+            background-color: #138496;
+            color: white;
+        }
+
+        /* Style for the export button */
+        .btn-export {
+            background-color: #28a745;
+            color: white;
+            margin-right: 10px;
+        }
+
+        .btn-export:hover {
+            background-color: #218838;
+            color: white;
+        }
     </style>
 
     <div class="container-fluid">
@@ -629,6 +674,9 @@
                 ajax: {
                     url: "{{ url('/assets/data') }}",
                     dataSrc: function(json) {
+                        setTimeout(function() {
+                            populateFilterOptions();
+                        }, 100);
                         return json.data;
                     }
                 },
@@ -721,16 +769,16 @@
                         searchable: false,
                         render: function(data, type, row) {
                             return `
-                        <div class="action-buttons">
-                            <button class="btn btn-sm btn-edit" data-id="${row.id}" title="Edit">
-                                <i class="fas fa-edit"></i> Edit
-                            </button>
-                            <button class="btn btn-sm btn-delete" data-id="${row.id}" 
-                                    data-asset="${row.asset_code}" title="Delete">
-                                <i class="fas fa-trash-alt"></i> Delete
-                            </button>
-                        </div>
-                    `;
+                            <div class="action-buttons">
+                                <button class="btn btn-sm btn-edit" data-id="${row.id}" title="Edit">
+                                    <i class="fas fa-edit"></i> Edit
+                                </button>
+                                <button class="btn btn-sm btn-delete" data-id="${row.id}" 
+                                        data-asset="${row.asset_code}" title="Delete">
+                                    <i class="fas fa-trash-alt"></i> Delete
+                                </button>
+                            </div>
+                        `;
                         }
                     }
                 ],
@@ -749,6 +797,203 @@
                             ' of ' + settings.fnRecordsTotal() + ' entries');
                     }
                 }
+            });
+
+            // Add filter container above the table
+            $('#assetsTable_wrapper .row:first').after(`
+                <div class="mb-3 row filter-container" style="display:none;">
+                    <div class="mb-2 col-12">
+                        <h5>Filter Data</h5>
+                    </div>
+                    <div class="flex-wrap gap-2 col-md-12 d-flex">
+                        <div class="filter-group">
+                            <label for="filter-asset_code">Nomor Asset</label>
+                            <select id="filter-asset_code" class="form-select filter-select">
+                                <option value="">Semua</option>
+                            </select>
+                        </div>
+                        <div class="filter-group">
+                            <label for="filter-brand">Merk Barang</label>
+                            <select id="filter-brand" class="form-select filter-select">
+                                <option value="">Semua</option>
+                            </select>
+                        </div>
+                        <div class="filter-group">
+                            <label for="filter-lokasi_awal">Lokasi Awal</label>
+                            <select id="filter-lokasi_awal" class="form-select filter-select">
+                                <option value="">Semua</option>
+                            </select>
+                        </div>
+                        <div class="filter-group">
+                            <label for="filter-lokasi_tujuan">Lokasi Tujuan</label>
+                            <select id="filter-lokasi_tujuan" class="form-select filter-select">
+                                <option value="">Semua</option>
+                            </select>
+                        </div>
+                        <div class="filter-group">
+                            <label for="filter-category">Kategori</label>
+                            <select id="filter-category" class="form-select filter-select">
+                                <option value="">Semua</option>
+                            </select>
+                        </div>
+                        <div class="filter-group">
+                            <label for="filter-status_barang">Status Barang</label>
+                            <select id="filter-status_barang" class="form-select filter-select">
+                                <option value="">Semua</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="mt-3 col-md-12">
+                        <button id="applyFilters" class="btn btn-primary">
+                            <i class="fas fa-filter"></i> Terapkan Filter
+                        </button>
+                        <button id="resetFilters" class="btn btn-secondary">
+                            <i class="fas fa-undo"></i> Reset
+                        </button>
+                    </div>
+                </div>
+            `);
+
+            // Add filter toggle button in the header buttons
+            $('.header-buttons').prepend(`
+                <button type="button" class="btn btn-filter" id="filterBtn">
+                    <i class="fas fa-filter"></i> Filter Data
+                </button>
+            `);
+
+            // Function to populate filter options
+            function populateFilterOptions() {
+                // Get all data from the table
+                const data = assetsTable.data().toArray();
+                
+                // Populate asset code filter
+                const assetCodes = [...new Set(data.map(item => item.asset_code))].filter(Boolean).sort();
+                $('#filter-asset_code').empty().append('<option value="">Semua</option>');
+                assetCodes.forEach(code => {
+                    $('#filter-asset_code').append(`<option value="${code}">${code}</option>`);
+                });
+                
+                // Populate brand filter
+                const brands = [...new Set(data.map(item => item.brand))].filter(Boolean).sort();
+                $('#filter-brand').empty().append('<option value="">Semua</option>');
+                brands.forEach(brand => {
+                    $('#filter-brand').append(`<option value="${brand}">${brand}</option>`);
+                });
+                
+                // Populate lokasi awal filter
+                const lokasiAwal = [...new Set(data.map(item => item.lokasi_awal ? item.lokasi_awal.nama_lokasi : ''))].filter(Boolean).sort();
+                $('#filter-lokasi_awal').empty().append('<option value="">Semua</option>');
+                lokasiAwal.forEach(lokasi => {
+                    $('#filter-lokasi_awal').append(`<option value="${lokasi}">${lokasi}</option>`);
+                });
+                
+                // Populate lokasi tujuan filter
+                const lokasiTujuan = [...new Set(data.map(item => item.lokasi_tujuan ? item.lokasi_tujuan.nama_lokasi : ''))].filter(Boolean).sort();
+                $('#filter-lokasi_tujuan').empty().append('<option value="">Semua</option>');
+                lokasiTujuan.forEach(lokasi => {
+                    $('#filter-lokasi_tujuan').append(`<option value="${lokasi}">${lokasi}</option>`);
+                });
+                
+                // Populate category filter
+                const categories = [...new Set(data.map(item => item.category ? item.category.name : ''))].filter(Boolean).sort();
+                $('#filter-category').empty().append('<option value="">Semua</option>');
+                categories.forEach(category => {
+                    $('#filter-category').append(`<option value="${category}">${category}</option>`);
+                });
+                
+                // Populate status barang filter
+                const statuses = [...new Set(data.map(item => item.status_barang))].filter(Boolean).sort();
+                $('#filter-status_barang').empty().append('<option value="">Semua</option>');
+                statuses.forEach(status => {
+                    const capitalizedStatus = status.charAt(0).toUpperCase() + status.slice(1);
+                    $('#filter-status_barang').append(`<option value="${status}">${capitalizedStatus}</option>`);
+                });
+            }
+
+            // Event handler for filter button
+            $('#filterBtn').on('click', function() {
+                $('.filter-container').toggle();
+            });
+
+            // Event handler for apply filters button
+            $('#applyFilters').on('click', function() {
+                // Apply filters to the table
+                assetsTable.columns().every(function(index) {
+                    const column = this;
+                    let filterValue = '';
+                    
+                    switch(index) {
+                        case 1: // asset_code
+                            filterValue = $('#filter-asset_code').val();
+                            break;
+                        case 2: // brand
+                            filterValue = $('#filter-brand').val();
+                            break;
+                        case 4: // lokasi_awal
+                            filterValue = $('#filter-lokasi_awal').val();
+                            break;
+                        case 5: // lokasi_tujuan
+                            filterValue = $('#filter-lokasi_tujuan').val();
+                            break;
+                        case 6: // category
+                            filterValue = $('#filter-category').val();
+                            break;
+                        case 8: // status_barang
+                            filterValue = $('#filter-status_barang').val();
+                            break;
+                    }
+                    
+                    if (filterValue) {
+                        column.search(filterValue === 'null' ? '' : filterValue, true, false).draw();
+                    }
+                });
+            });
+
+            // Event handler for reset filters button
+            $('#resetFilters').on('click', function() {
+                $('.filter-select').val('');
+                assetsTable.columns().search('').draw();
+            });
+
+            $('#exportBtn').on('click', function() {
+                const filteredData = assetsTable.rows({ search: 'applied' }).data().toArray();
+                
+                if (filteredData.length === 0) {
+                    alert('Tidak ada data untuk diekspor!');
+                    return;
+                }
+                
+                $.ajax({
+                    url: "{{ route('assets.export.filtered') }}",
+                    method: 'POST',
+                    data: {
+                        _token: "{{ csrf_token() }}",
+                        filtered_data: JSON.stringify(filteredData)
+                    },
+                    xhrFields: {
+                        responseType: 'blob'
+                    },
+                    success: function(response) {
+                        // Create a blob from the response
+                        const blob = new Blob([response], {
+                            type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+                        });
+                        
+                        // Create a download link and trigger it
+                        const url = window.URL.createObjectURL(blob);
+                        const a = document.createElement('a');
+                        a.style.display = 'none';
+                        a.href = url;
+                        a.download = 'Data_Assets_IT_' + new Date().toISOString().slice(0, 19).replace(/[-:T]/g, '') + '.xlsx';
+                        document.body.appendChild(a);
+                        a.click();
+                        window.URL.revokeObjectURL(url);
+                    },
+                    error: function(xhr) {
+                        alert('Terjadi kesalahan saat mengekspor data.');
+                        console.error(xhr);
+                    }
+                });
             });
 
             // Event handler for lokasi_awal_id to auto-fill warehouse_master_site_id
@@ -1111,9 +1356,9 @@
             });
 
             // Export Excel
-            $('#exportBtn').on('click', function() {
-                window.location.href = "{{ route('assets.export') }}";
-            });
+            // $('#exportBtn').on('click', function() {
+            //     window.location.href = "{{ route('assets.export') }}";
+            // });
         });
     </script>
 @endsection
