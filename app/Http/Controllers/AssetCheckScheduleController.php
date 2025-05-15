@@ -46,12 +46,15 @@ class AssetCheckScheduleController extends Controller
             'arrival_completed_date' => 'nullable|date|after_or_equal:arrival_date',
             'status' => 'nullable|string|in:unassigned,open,waiting,resolved',
         ]);
-    
+
+        // Tambahkan kolom 'pic' dari user yang sedang login
+        $validated['pic'] = auth()->id();
+
         $event = AssetCheckSchedule::create($validated);
-    
+
         return response()->json(['status' => 'success', 'data' => $event]);
     }
-    
+        
 
     public function edit($id)
     {

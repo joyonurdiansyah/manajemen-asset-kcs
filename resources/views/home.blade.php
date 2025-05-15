@@ -19,12 +19,12 @@
 
                                         <div class="d-flex align-items-center">
                                             <div
-                                                class="card-icon rounded-circle d-flex align-items-center justify-content-center bg-success text-white">
+                                                class="text-white card-icon rounded-circle d-flex align-items-center justify-content-center bg-success">
                                                 <i class="bi bi-check-circle"></i>
                                             </div>
                                             <div class="ps-3">
                                                 <h6>320</h6>
-                                                <span class="text-success small pt-1 fw-bold">Stabil</span>
+                                                <span class="pt-1 text-success small fw-bold">Stabil</span>
                                             </div>
                                         </div>
                                     </div>
@@ -39,12 +39,12 @@
 
                                         <div class="d-flex align-items-center">
                                             <div
-                                                class="card-icon rounded-circle d-flex align-items-center justify-content-center bg-danger text-white">
+                                                class="text-white card-icon rounded-circle d-flex align-items-center justify-content-center bg-danger">
                                                 <i class="bi bi-x-circle"></i>
                                             </div>
                                             <div class="ps-3">
                                                 <h6>45</h6>
-                                                <span class="text-danger small pt-1 fw-bold">Butuh Tindakan</span>
+                                                <span class="pt-1 text-danger small fw-bold">Butuh Tindakan</span>
                                             </div>
                                         </div>
                                     </div>
@@ -64,7 +64,7 @@
                                             </div>
                                             <div class="ps-3">
                                                 <h6>72</h6>
-                                                <span class="text-warning small pt-1 fw-bold">Segera Cek</span>
+                                                <span class="pt-1 text-warning small fw-bold">Segera Cek</span>
                                             </div>
                                         </div>
                                     </div>
@@ -76,57 +76,11 @@
                             <div class="col-lg-12">
                                 <div class="card">
                                     <div class="card-body">
-                                        <h5 class="card-title">Data Keseluruhan Barang</h5>
-
+                                        <h5 class="card-title">Data Keseluruhan Berdasarkan Brand</h5>
+                                        
                                         <!-- Bar Chart -->
                                         <canvas id="barChart" style="max-height: 400px;"></canvas>
-                                        <script>
-                                            document.addEventListener("DOMContentLoaded", () => {
-                                                new Chart(document.querySelector('#barChart'), {
-                                                    type: 'bar',
-                                                    data: {
-                                                        labels: ['Monitor', 'CPU', 'Printer', 'Switch', 'CCTV', 'Access Point', 'Print Server'],
-                                                        datasets: [{
-                                                            data: [25, 18, 12, 5, 8, 6, 3],
-                                                            backgroundColor: [
-                                                                'rgba(54, 162, 235, 0.2)',
-                                                                'rgba(255, 206, 86, 0.2)',
-                                                                'rgba(75, 192, 192, 0.2)',
-                                                                'rgba(153, 102, 255, 0.2)',
-                                                                'rgba(255, 159, 64, 0.2)',
-                                                                'rgba(255, 99, 132, 0.2)',
-                                                                'rgba(201, 203, 207, 0.2)'
-                                                            ],
-                                                            borderColor: [
-                                                                'rgba(54, 162, 235, 1)',
-                                                                'rgba(255, 206, 86, 1)',
-                                                                'rgba(75, 192, 192, 1)',
-                                                                'rgba(153, 102, 255, 1)',
-                                                                'rgba(255, 159, 64, 1)',
-                                                                'rgba(255, 99, 132, 1)',
-                                                                'rgba(201, 203, 207, 1)'
-                                                            ],
-                                                            borderWidth: 1
-                                                        }]
-                                                    },
-                                                    options: {
-                                                        scales: {
-                                                            y: {
-                                                                beginAtZero: true
-                                                            }
-                                                        },
-                                                        plugins: {
-                                                            legend: {
-                                                                display: false
-                                                            }
-                                                        }
-                                                    }
-                                                });
-                                            });
-                                        </script>
-
-                                        <!-- End Bar CHart -->
-
+                                        
                                     </div>
                                 </div>
                             </div>
@@ -241,4 +195,95 @@
 
                 </div>
             </section>
+        @endsection
+        @section('scripts')
+        <script>
+            $.ajaxSetup({
+                headers: {
+                    'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                }
+            });
+    
+            let barChart;
+            
+            function updateChart(labels, data, backgroundColors, borderColors) {
+                const ctx = document.getElementById('barChart').getContext('2d');
+                
+                if (barChart) {
+                    // Update existing chart
+                    barChart.data.labels = labels;
+                    barChart.data.datasets[0].data = data;
+                    barChart.data.datasets[0].backgroundColor = backgroundColors;
+                    barChart.data.datasets[0].borderColor = borderColors;
+                    barChart.update();
+                } else {
+                    // Create new chart
+                    barChart = new Chart(ctx, {
+                        type: 'bar',
+                        data: {
+                            labels: labels,
+                            datasets: [{
+                                data: data,
+                                backgroundColor: backgroundColors,
+                                borderColor: borderColors,
+                                borderWidth: 1
+                            }]
+                        },
+                        options: {
+                            scales: {
+                                y: {
+                                    beginAtZero: true
+                                }
+                            },
+                            plugins: {
+                                legend: {
+                                    display: false
+                                },
+                                tooltip: {
+                                    callbacks: {
+                                        title: function(tooltipItem) {
+                                            return tooltipItem[0].label;
+                                        },
+                                        label: function(context) {
+                                            return `Jumlah: ${context.raw}`;
+                                        }
+                                    }
+                                }
+                            },
+                            animation: {
+                                duration: 1000
+                            },
+                            responsive: true,
+                            maintainAspectRatio: false
+                        }
+                    });
+                }
+            }
+            
+            // Function to fetch data and update chart
+            function fetchDataAndUpdateChart() {
+                $.ajax({
+                    url: '{{ route("brand.data") }}',
+                    method: 'GET',
+                    success: function(response) {
+                        updateChart(
+                            response.labels, 
+                            response.data, 
+                            response.backgroundColors, 
+                            response.borderColors
+                        );
+                        console.log('Chart updated at: ' + new Date().toLocaleTimeString());
+                    },
+                    error: function(error) {
+                        console.error('Error fetching data:', error);
+                    }
+                });
+            }
+            
+            // Initial fetch when document is ready
+            $(document).ready(function() {
+                fetchDataAndUpdateChart();
+                setInterval(fetchDataAndUpdateChart, 7000);
+            });
+        </script>
         @endsection

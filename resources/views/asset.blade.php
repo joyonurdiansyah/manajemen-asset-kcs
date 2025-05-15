@@ -291,6 +291,7 @@
                                 <th>Lokasi Awal</th>
                                 <th>Lokasi Tujuan</th>
                                 <th>Type Barang</th>
+                                <th>PIC</th>
                                 <th>Tanggal Kunjungan</th>
                                 <th>Status Barang</th>
                                 <th>Notes</th>
@@ -680,18 +681,25 @@
                         return json.data;
                     }
                 },
-                columns: [{
+                columns:  [
+                    {
                         data: null,
                         render: (data, type, row, meta) => meta.row + 1
                     },
                     {
-                        data: 'asset_code'
+                        data: 'asset_code',
+                        render: function(data) {
+                            return data ? data : '-';
+                        }
                     },
                     {
                         data: 'brand'
                     },
                     {
-                        data: 'serial_number'
+                        data: 'serial_number',
+                        render: function(data) {
+                            return data ? data : '-';
+                        }
                     },
                     {
                         data: null,
@@ -709,6 +717,12 @@
                         data: null,
                         render: function(data) {
                             return data.category ? data.category.name : '';
+                        }
+                    },
+                    {
+                        data: null,
+                        render: function(data) {
+                            return data.pic && data.pic.name ? data.pic.name : '-';
                         }
                     },
                     {
@@ -745,7 +759,10 @@
                         }
                     },
                     {
-                        data: 'notes'
+                        data: 'notes',
+                        render: function(data) {
+                            return data ? data : '-';
+                        }
                     },
                     {
                         data: 'created_at',
@@ -778,7 +795,7 @@
                                     <i class="fas fa-trash-alt"></i> Delete
                                 </button>
                             </div>
-                        `;
+                            `;
                         }
                     }
                 ],
@@ -842,6 +859,13 @@
                                 <option value="">Semua</option>
                             </select>
                         </div>
+                        <div class="filter-group">
+                            <label for="filter-pic_kunjungan">PIC Kunjungan</label>
+                            <select id="filter-pic_kunjungan" class="form-select filter-select">
+                                <option value="">Semua</option>
+                                <!-- Isi opsi ini nanti secara dinamis dengan data PIC -->
+                            </select>
+                        </div>
                     </div>
                     <div class="mt-3 col-md-12">
                         <button id="applyFilters" class="btn btn-primary">
@@ -863,51 +887,59 @@
 
             // Function to populate filter options
             function populateFilterOptions() {
-                // Get all data from the table
-                const data = assetsTable.data().toArray();
-                
-                // Populate asset code filter
-                const assetCodes = [...new Set(data.map(item => item.asset_code))].filter(Boolean).sort();
-                $('#filter-asset_code').empty().append('<option value="">Semua</option>');
-                assetCodes.forEach(code => {
-                    $('#filter-asset_code').append(`<option value="${code}">${code}</option>`);
-                });
-                
-                // Populate brand filter
-                const brands = [...new Set(data.map(item => item.brand))].filter(Boolean).sort();
-                $('#filter-brand').empty().append('<option value="">Semua</option>');
-                brands.forEach(brand => {
-                    $('#filter-brand').append(`<option value="${brand}">${brand}</option>`);
-                });
-                
-                // Populate lokasi awal filter
-                const lokasiAwal = [...new Set(data.map(item => item.lokasi_awal ? item.lokasi_awal.nama_lokasi : ''))].filter(Boolean).sort();
-                $('#filter-lokasi_awal').empty().append('<option value="">Semua</option>');
-                lokasiAwal.forEach(lokasi => {
-                    $('#filter-lokasi_awal').append(`<option value="${lokasi}">${lokasi}</option>`);
-                });
-                
-                // Populate lokasi tujuan filter
-                const lokasiTujuan = [...new Set(data.map(item => item.lokasi_tujuan ? item.lokasi_tujuan.nama_lokasi : ''))].filter(Boolean).sort();
-                $('#filter-lokasi_tujuan').empty().append('<option value="">Semua</option>');
-                lokasiTujuan.forEach(lokasi => {
-                    $('#filter-lokasi_tujuan').append(`<option value="${lokasi}">${lokasi}</option>`);
-                });
-                
-                // Populate category filter
-                const categories = [...new Set(data.map(item => item.category ? item.category.name : ''))].filter(Boolean).sort();
-                $('#filter-category').empty().append('<option value="">Semua</option>');
-                categories.forEach(category => {
-                    $('#filter-category').append(`<option value="${category}">${category}</option>`);
-                });
-                
-                // Populate status barang filter
-                const statuses = [...new Set(data.map(item => item.status_barang))].filter(Boolean).sort();
-                $('#filter-status_barang').empty().append('<option value="">Semua</option>');
-                statuses.forEach(status => {
-                    const capitalizedStatus = status.charAt(0).toUpperCase() + status.slice(1);
-                    $('#filter-status_barang').append(`<option value="${status}">${capitalizedStatus}</option>`);
-                });
+                // Clear all filter select options except 'Semua'
+    $('.filter-select').each(function() {
+        $(this).find('option:not(:first)').remove();
+    });
+
+    let data = assetsTable.rows().data().toArray();
+        // Fungsi untuk dapatkan unique values dari array of objects
+        function getUniqueValues(data, accessor) {
+            const values = data.map(accessor).filter(v => v !== null && v !== undefined && v !== '');
+            return [...new Set(values)];
+        }
+
+        // Isi filter asset_code
+        let assetCodes = getUniqueValues(data, row => row.asset_code);
+        assetCodes.forEach(code => {
+            $('#filter-asset_code').append(`<option value="${code}">${code}</option>`);
+        });
+
+        // Isi filter brand
+        let brands = getUniqueValues(data, row => row.brand);
+        brands.forEach(brand => {
+            $('#filter-brand').append(`<option value="${brand}">${brand}</option>`);
+        });
+
+        // Isi filter lokasi_awal (nama_lokasi)
+        let lokasiAwal = getUniqueValues(data, row => row.lokasi_awal ? row.lokasi_awal.nama_lokasi : '');
+        lokasiAwal.forEach(lokasi => {
+            if(lokasi) $('#filter-lokasi_awal').append(`<option value="${lokasi}">${lokasi}</option>`);
+        });
+
+        // Isi filter lokasi_tujuan (nama_lokasi)
+        let lokasiTujuan = getUniqueValues(data, row => row.lokasi_tujuan ? row.lokasi_tujuan.nama_lokasi : '');
+        lokasiTujuan.forEach(lokasi => {
+            if(lokasi) $('#filter-lokasi_tujuan').append(`<option value="${lokasi}">${lokasi}</option>`);
+        });
+
+        // Isi filter category (category.name)
+        let categories = getUniqueValues(data, row => row.category ? row.category.name : '');
+        categories.forEach(category => {
+            if(category) $('#filter-category').append(`<option value="${category}">${category}</option>`);
+        });
+
+        // Isi filter status_barang
+        let statuses = getUniqueValues(data, row => row.status_barang);
+        statuses.forEach(status => {
+            if(status) $('#filter-status_barang').append(`<option value="${status}">${status}</option>`);
+        });
+
+        // **Isi filter pic_kunjungan**
+        let pics = getUniqueValues(data, row => row.pic && row.pic.name ? row.pic.name : '');
+        pics.forEach(pic => {
+            if(pic) $('#filter-pic_kunjungan').append(`<option value="${pic}">${pic}</option>`);
+        });
             }
 
             // Event handler for filter button
@@ -917,37 +949,75 @@
 
             // Event handler for apply filters button
             $('#applyFilters').on('click', function() {
-                // Apply filters to the table
-                assetsTable.columns().every(function(index) {
-                    const column = this;
-                    let filterValue = '';
-                    
-                    switch(index) {
-                        case 1: // asset_code
-                            filterValue = $('#filter-asset_code').val();
-                            break;
-                        case 2: // brand
-                            filterValue = $('#filter-brand').val();
-                            break;
-                        case 4: // lokasi_awal
-                            filterValue = $('#filter-lokasi_awal').val();
-                            break;
-                        case 5: // lokasi_tujuan
-                            filterValue = $('#filter-lokasi_tujuan').val();
-                            break;
-                        case 6: // category
-                            filterValue = $('#filter-category').val();
-                            break;
-                        case 8: // status_barang
-                            filterValue = $('#filter-status_barang').val();
-                            break;
+                // Ambil nilai filter
+                let filterAssetCode = $('#filter-asset_code').val();
+                let filterBrand = $('#filter-brand').val();
+                let filterLokasiAwal = $('#filter-lokasi_awal').val();
+                let filterLokasiTujuan = $('#filter-lokasi_tujuan').val();
+                let filterCategory = $('#filter-category').val();
+                let filterStatus = $('#filter-status_barang').val();
+                let filterPic = $('#filter-pic_kunjungan').val();
+
+                // Buat custom search function
+                $.fn.dataTable.ext.search = []; 
+
+                $.fn.dataTable.ext.search.push(function(settings, data, dataIndex, rowData) {
+
+                    // Filter asset_code
+                    if (filterAssetCode && rowData.asset_code !== filterAssetCode) {
+                        return false;
                     }
-                    
-                    if (filterValue) {
-                        column.search(filterValue === 'null' ? '' : filterValue, true, false).draw();
+
+                    // Filter brand
+                    if (filterBrand && rowData.brand !== filterBrand) {
+                        return false;
                     }
+
+                    // Filter lokasi_awal.nama_lokasi
+                    if (filterLokasiAwal) {
+                        let lokasiAwal = rowData.lokasi_awal ? rowData.lokasi_awal.nama_lokasi : '';
+                        if (lokasiAwal !== filterLokasiAwal) {
+                            return false;
+                        }
+                    }
+
+                    // Filter lokasi_tujuan.nama_lokasi
+                    if (filterLokasiTujuan) {
+                        let lokasiTujuan = rowData.lokasi_tujuan ? rowData.lokasi_tujuan.nama_lokasi : '';
+                        if (lokasiTujuan !== filterLokasiTujuan) {
+                            return false;
+                        }
+                    }
+
+                    // Filter category.name
+                    if (filterCategory) {
+                        let category = rowData.category ? rowData.category.name : '';
+                        if (category !== filterCategory) {
+                            return false;
+                        }
+                    }
+
+                    // Filter status_barang (pastikan sama persis)
+                    if (filterStatus) {
+                        if (rowData.status_barang !== filterStatus) {
+                            return false;
+                        }
+                    }
+
+                    // Filter pic.name
+                    if (filterPic) {
+                        let picName = rowData.pic && rowData.pic.name ? rowData.pic.name : '';
+                        if (picName !== filterPic) {
+                            return false;
+                        }
+                    }
+
+                    return true; 
                 });
+
+                assetsTable.draw(); 
             });
+
 
             // Event handler for reset filters button
             $('#resetFilters').on('click', function() {

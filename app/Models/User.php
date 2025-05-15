@@ -53,4 +53,9 @@ class User extends Authenticatable
         return $this->belongsTo(Division::class);
     }
 
+    public function assetStatuses()
+    {
+        return $this->hasMany(AssetStatus::class, 'pic');
+    }
+
 }

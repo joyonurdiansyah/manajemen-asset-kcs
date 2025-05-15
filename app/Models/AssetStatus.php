@@ -29,6 +29,11 @@ class AssetStatus extends Model
         return $this->belongsTo(Subcategory::class);
     }
 
+    public function pic()
+    {
+        return $this->belongsTo(User::class, 'pic');
+    }
+
     public function lokasiAwal()
     {
         return $this->belongsTo(WarehouseMasterSite::class, 'lokasi_awal_id');
