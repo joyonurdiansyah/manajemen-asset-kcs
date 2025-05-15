@@ -41,6 +41,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
     // home group
     Route::get('/brand-data', [HomeController::class, 'getBrandData'])->name('brand.data');
+    Route::get('/location-data', [HomeController::class, 'getLocationData'])->name('location.data');
 
     // Profile
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
