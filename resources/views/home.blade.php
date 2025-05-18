@@ -108,44 +108,25 @@
 
                     <div class="card-body">
                         <h5 class="card-title">Aktivitas Aset IT <span>| Hari Ini</span></h5>
-
+                    
                         <div class="activity">
-
-                            <div class="activity-item d-flex">
-                                <div class="activite-label">10 min</div>
-                                <i class='bi bi-circle-fill activity-badge text-success align-self-start'></i>
-                                <div class="activity-content">
-                                    Wahyu telah menambahkan barang <span
-                                        class="fw-bold text-primary">Handheld</span>
+                            @forelse($activities as $activity)
+                                <div class="activity-item d-flex">
+                                    <div class="activite-label">{{ $activity['time_ago'] }}</div>
+                                    <i class='bi bi-circle-fill activity-badge {{ $activity["badge_class"] }} align-self-start'></i>
+                                    <div class="activity-content">
+                                        {{ $activity['user'] }} {!! $activity['content'] !!}
+                                    </div>
                                 </div>
-                            </div>
-
-                            <div class="activity-item d-flex">
-                                <div class="activite-label">25 min</div>
-                                <i class='bi bi-circle-fill activity-badge text-success align-self-start'></i>
-                                <div class="activity-content">
-                                    Joyo telah menambahkan <span class="fw-bold text-primary">Monitor</span>
+                            @empty
+                                <div class="activity-item d-flex">
+                                    <div class="activite-label">now</div>
+                                    <i class='bi bi-circle-fill activity-badge text-info align-self-start'></i>
+                                    <div class="activity-content">
+                                        Belum ada aktivitas hari ini
+                                    </div>
                                 </div>
-                            </div>
-
-                            <div class="activity-item d-flex">
-                                <div class="activite-label">1 hr</div>
-                                <i class='bi bi-circle-fill activity-badge text-warning align-self-start'></i>
-                                <div class="activity-content">
-                                    Dedy telah menambahkan jadwal <span class="fw-bold text-warning">pengiriman ke
-                                        gudang kering</span>
-                                </div>
-                            </div>
-
-                            <div class="activity-item d-flex">
-                                <div class="activite-label">2 hrs</div>
-                                <i class='bi bi-circle-fill activity-badge text-info align-self-start'></i>
-                                <div class="activity-content">
-                                    Andi memperbarui status <span class="fw-bold text-info">laptop rusak menjadi
-                                        "Maintenance"</span>
-                                </div>
-                            </div>
-
+                            @endforelse
                         </div>
                     </div>
                 </div><!-- End Aktivitas Aset IT -->
@@ -328,14 +309,56 @@
         });
     }
     
+    // Function to update activities
+    function fetchActivitiesAndUpdate() {
+        $.ajax({
+            url: '{{ route("activities.data") }}',
+            method: 'GET',
+            success: function(response) {
+                let html = '';
+                
+                if (response.length === 0) {
+                    html = `
+                        <div class="activity-item d-flex">
+                            <div class="activite-label">now</div>
+                            <i class='bi bi-circle-fill activity-badge text-info align-self-start'></i>
+                            <div class="activity-content">
+                                Belum ada aktivitas hari ini
+                            </div>
+                        </div>
+                    `;
+                } else {
+                    response.forEach(activity => {
+                        html += `
+                            <div class="activity-item d-flex">
+                                <div class="activite-label">${activity.time_ago}</div>
+                                <i class='bi bi-circle-fill activity-badge ${activity.badge_class} align-self-start'></i>
+                                <div class="activity-content">
+                                    ${activity.user} ${activity.content}
+                                </div>
+                            </div>
+                        `;
+                    });
+                }
+                
+                $('.activity').html(html);
+                console.log('Activities updated at: ' + new Date().toLocaleTimeString());
+            },
+            error: function(error) {
+                console.error('Error fetching activities:', error);
+            }
+        });
+    }
 
     $(document).ready(function() {
         fetchBrandDataAndUpdate();
         fetchLocationDataAndUpdate();
+        fetchActivitiesAndUpdate();
         
         setInterval(function() {
             fetchBrandDataAndUpdate();
             fetchLocationDataAndUpdate();
+            fetchActivitiesAndUpdate();
         }, 7000);
     });
 </script>

@@ -35,13 +35,12 @@ Route::middleware(['auth', 'verified'])->group(function () {
     })->name('dashboard');
     
     // Home
-    Route::get('/home', function () {
-        return view('home'); 
-    })->name('home');
-
+    Route::get('/home', [HomeController::class, 'index'])->name('home');
     // home group
     Route::get('/brand-data', [HomeController::class, 'getBrandData'])->name('brand.data');
     Route::get('/location-data', [HomeController::class, 'getLocationData'])->name('location.data');
+    // Rute untuk mendapatkan data aktivitas via AJAX
+    Route::get('/get-activities', [HomeController::class, 'getActivities'])->name('activities.data');
 
     // Profile
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');

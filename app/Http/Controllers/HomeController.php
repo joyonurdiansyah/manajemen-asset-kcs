@@ -5,12 +5,20 @@ namespace App\Http\Controllers;
 use App\Models\AssetStatus;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use App\Services\ActivityService;
 
 class HomeController extends Controller
 {
     public function index()
     {
-        return view('home');
+        $activities = ActivityService::getLatestActivities();
+        return view('home', compact('activities'));
+    }
+
+    public function getActivities()
+    {
+        $activities = ActivityService::getLatestActivities();
+        return response()->json($activities);
     }
 
     public function getBrandData()
