@@ -236,13 +236,11 @@
     function updatePieChart(labels, data, percentages, backgroundColors) {
         const ctx = document.getElementById('pieChart').getContext('2d');
         
-        // Create custom labels with percentages
         const labelsWithPercentages = labels.map((label, index) => {
             return `${label} (${percentages[index]}%)`;
         });
         
         if (pieChart) {
-            // Update existing chart
             pieChart.data.labels = labelsWithPercentages;
             pieChart.data.datasets[0].data = data;
             pieChart.data.datasets[0].backgroundColor = backgroundColors;
@@ -290,7 +288,7 @@
         }
     }
     
-    // Function to fetch brand data and update bar chart
+
     function fetchBrandDataAndUpdate() {
         $.ajax({
             url: '{{ route("brand.data") }}',
@@ -310,7 +308,7 @@
         });
     }
 
-    // Function to fetch location data and update pie chart
+
     function fetchLocationDataAndUpdate() {
         $.ajax({
             url: '{{ route("location.data") }}',
@@ -330,13 +328,11 @@
         });
     }
     
-    // Initial fetch when document is ready
+
     $(document).ready(function() {
-        // Load both charts initially
         fetchBrandDataAndUpdate();
         fetchLocationDataAndUpdate();
         
-        // Set interval to fetch data every 7 seconds
         setInterval(function() {
             fetchBrandDataAndUpdate();
             fetchLocationDataAndUpdate();

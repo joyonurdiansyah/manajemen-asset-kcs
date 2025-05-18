@@ -268,15 +268,23 @@
             <div class="card-header">
                 <h5 class="mb-0 card-title">Data Asset IT</h5>
                 <div class="header-buttons">
+                    @can('export_assets')
                     <button type="button" class="btn btn-export" id="exportBtn">
                         <i class="fas fa-file-excel"></i> Export Excel
                     </button>
+                    @endcan
+                    
+                    @can('add_assets')
                     <button type="button" class="btn btn-add" id="addAssetBtn">
                         <i class="fas fa-plus-circle"></i> Tambah Data Asset IT
                     </button>
+                    @endcan
+                    
+                    @can('import_assets')
                     <button type="button" class="gap-2 btn btn-success d-flex align-items-center" id="importBtn" data-bs-toggle="modal" data-bs-target="#importAssetModal">
                         <i class="fas fa-file-import"></i> <span>Import Excel</span>
                     </button>
+                    @endcan
                 </div>
             </div>
             <div class="card-body">
@@ -780,24 +788,34 @@
                             return '';
                         }
                     },
+                    @if(auth()->user()->can('edit_assets') || auth()->user()->can('delete_assets'))
                     {
                         data: null,
                         orderable: false,
                         searchable: false,
                         render: function(data, type, row) {
-                            return `
-                            <div class="action-buttons">
+                            let actionButtons = '<div class="action-buttons">';
+                            
+                            @if(auth()->user()->can('edit_assets'))
+                            actionButtons += `
                                 <button class="btn btn-sm btn-edit" data-id="${row.id}" title="Edit">
                                     <i class="fas fa-edit"></i> Edit
-                                </button>
+                                </button>`;
+                            @endif
+                            
+                            @if(auth()->user()->can('delete_assets'))
+                            actionButtons += `
                                 <button class="btn btn-sm btn-delete" data-id="${row.id}" 
                                         data-asset="${row.asset_code}" title="Delete">
                                     <i class="fas fa-trash-alt"></i> Delete
-                                </button>
-                            </div>
-                            `;
+                                </button>`;
+                            @endif
+                            
+                            actionButtons += '</div>';
+                            return actionButtons;
                         }
                     }
+                    @endif
                 ],
                 dom: '<"row mb-3"<"col-md-6"l><"col-md-6"f>>rt<"row mt-3"<"col-md-5"i><"col-md-7"p>>',
                 language: {

@@ -91,6 +91,11 @@ Route::middleware(['auth', 'verified'])->group(function () {
     // Permissions
     Route::get('/permissions', [PermissionController::class, 'permissionHome'])->name('role.permissions.index');
     Route::post('/permissions/update', [PermissionController::class, 'update'])->name('permissions.update');
+    Route::post('/permissions/assign-role', [PermissionController::class, 'assignRole'])->name('users.assign-role');
+    Route::post('/permissions/update-roles', [PermissionController::class, 'updateUserRoles'])->name('users.update-roles');
+    Route::post('/permissions/remove-role', [PermissionController::class, 'removeRole'])->name('users.remove-role');
+    Route::get('/permissions/{user_id}/roles', [PermissionController::class, 'getUserRoles'])->name('users.get-roles');
+    Route::get('/permissions/search', [PermissionController::class, 'searchUsers'])->name('users.search');
 
     // Sub Category
     Route::get('/subcategories', [SubcategoryController::class, 'subcategoryHome'])->name('subCategory.index');
